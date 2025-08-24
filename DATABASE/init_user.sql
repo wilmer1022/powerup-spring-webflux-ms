@@ -17,3 +17,18 @@ CREATE UNIQUE INDEX idx_users_document_number ON users (document_number);
 CREATE UNIQUE INDEX idx_users_email ON users (email);
 ALTER TABLE users ADD CONSTRAINT check_birth_date CHECK (birth_date <= CURRENT_DATE);
 COMMIT;
+
+-- Application
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS applications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_document_number VARCHAR(20) NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    credit_period DATE NOT NULL,
+    credit_type VARCHAR(100) NOT NULL,
+    credit_status VARCHAR(100) DEFAULT 'Pendiente de revision'
+);
+
+COMMIT;

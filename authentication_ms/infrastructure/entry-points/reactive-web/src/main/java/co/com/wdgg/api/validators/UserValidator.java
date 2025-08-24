@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 import co.com.wdgg.model.user.User;
 
 @Component
-public class MyUserValidator implements Validator {
+public class UserValidator implements Validator {
 
-    private static final Logger logger = LoggerFactory.getLogger(MyUserValidator.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserValidator.class);
 
     private static final String EMAIL_REGEX = 
         "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
