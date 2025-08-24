@@ -32,14 +32,20 @@ public class MyReactiveRepositoryAdapter implements ApplicationRepository {
 
     @Override
     public Mono<Application> createApplication(Application application) {
-        final ApplicationEntity applicationEntity = new ApplicationEntity(
+        System.out.println("pre transform" + application);
+        System.out.println("post transform" + toEntity(application));
+        return repository.save(toEntity(application))
+                .map(this::toDomain);
+    }
+
+    private ApplicationEntity toEntity(Application application) {
+        return new ApplicationEntity(
+                application.id(),
                 application.userDocumentNumber(),
                 application.amount(),
                 application.creditPeriod(),
-                application.creditType()
-        );
-        return repository.save(applicationEntity)
-                .map(this::toDomain);
+                application.creditType(),
+                application.creditStatus());
     }
 
     private Application toDomain(ApplicationEntity applicationEntity) {

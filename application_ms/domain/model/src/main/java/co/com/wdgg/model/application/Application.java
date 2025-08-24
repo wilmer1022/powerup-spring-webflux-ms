@@ -11,4 +11,19 @@ public record Application(
         LocalDate creditPeriod,
         String creditType,
         String creditStatus) {
+
+    public enum CreditType {
+        PERSONAL,
+        HIPOTECARIO,
+        LIBRANZA,
+        VEHICULO
+    }
+
+    public enum CreditStatus {
+        PENDIENTE_DE_REVISION,
+        PRE_APROBADO,
+        APROBADO,
+        CANCELADO,
+        CERRADO
+    }
 }

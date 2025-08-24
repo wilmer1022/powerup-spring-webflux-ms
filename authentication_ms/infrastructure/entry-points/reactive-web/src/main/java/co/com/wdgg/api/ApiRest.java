@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.com.wdgg.api.dto.MessageResponse;
 import co.com.wdgg.api.exceptions.UserNotFoundException;
-import co.com.wdgg.api.validators.MyUserValidator;
+import co.com.wdgg.api.validators.UserValidator;
 import co.com.wdgg.model.user.User;
 import co.com.wdgg.usecase.user.UserUseCase;
 import reactor.core.publisher.Mono;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class ApiRest {
 
     private final UserUseCase userUseCase;
-    private final MyUserValidator myUserValidator;
+    private final UserValidator userValidator;
 
     @GetMapping()
     public Mono<ResponseEntity<MessageResponse<User>>> getUserById(@RequestParam("id") String id) {
@@ -53,7 +53,7 @@ public class ApiRest {
     @PostMapping()
     public Mono<ResponseEntity<MessageResponse<User>>> createUser(@RequestBody User user) {
         return Mono.just(user)
-                .doOnNext(u -> myUserValidator.validate(user, new BeanPropertyBindingResult(user, "user")))
+                .doOnNext(u -> userValidator.validate(user, new BeanPropertyBindingResult(user, "user")))
                 .flatMap(validatedUser -> userUseCase.createUser(validatedUser)
                         .map(createdUser -> ResponseEntity.status(HttpStatus.CREATED)
                                 .body(MessageResponse.<User>builder()

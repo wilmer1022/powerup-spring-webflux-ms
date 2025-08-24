@@ -44,4 +44,14 @@ public class GlobalExceptionHandler {
                 .data(null)
                 .build()));
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public Mono<ResponseEntity<MessageResponse<String>>> handleUserNotFoundException(UserNotFoundException ex) {
+        logger.error("User not found [{}]", ex.getMessage());
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(MessageResponse.<String>builder()
+                .message(ex.getMessage())
+                .data(null)
+                .build()));
+    }
 }
