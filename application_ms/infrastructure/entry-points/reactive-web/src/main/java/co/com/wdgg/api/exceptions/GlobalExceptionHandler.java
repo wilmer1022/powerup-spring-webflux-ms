@@ -35,12 +35,12 @@ public class GlobalExceptionHandler {
                 .build()));
     }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public Mono<ResponseEntity<MessageResponse<String>>> handleUserNotFoundException(UserNotFoundException ex) {
-        logger.error("User not found [{}]", ex.getMessage());
+    @ExceptionHandler(ApplicationNotFoundException.class)
+    public Mono<ResponseEntity<MessageResponse<String>>> handleApplicationNotFoundException(ApplicationNotFoundException ex) {
+        logger.error("Application not found [{}]", ex.getMessage());
 
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageResponse.<String>builder()
-                .message("El usuario no se encuentra!")
+                .message(ex.getMessage())
                 .data(null)
                 .build()));
     }

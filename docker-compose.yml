@@ -12,5 +12,19 @@ services:
     volumes:
       - user-db:/var/lib/postgresql/data
 
+  application-db:
+    image: postgres
+    container_name: application-db
+    restart: always
+    environment:
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=cy_application
+    ports:
+      - "5433:5432"
+    volumes:
+      - application-db:/var/lib/postgresql/data
+
 volumes:
   user-db:
+  application-db:
