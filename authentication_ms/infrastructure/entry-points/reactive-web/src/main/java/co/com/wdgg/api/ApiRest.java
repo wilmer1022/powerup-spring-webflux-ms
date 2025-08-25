@@ -19,7 +19,16 @@ import reactor.core.publisher.Mono;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-
+/**
+ * REST controller for managing user-related operations.
+ * This class handles all API endpoints for creating, retrieving, and
+ * validating users within the system. It leverages Spring WebFlux for
+ * reactive and non-blocking interactions.
+ *
+ * @author wilmer1022
+ * @version 0.0.1
+ * @since 2023-08-25
+ */
 @RestController
 @RequestMapping(value = "/api/v1/usuarios", produces = MediaType.APPLICATION_JSON_VALUE)
 @AllArgsConstructor
@@ -28,6 +37,14 @@ public class ApiRest {
     private final UserUseCase userUseCase;
     private final UserValidator userValidator;
 
+    /**
+     * Retrieves a user by their unique ID.
+     * This method handles a GET request to find a user using their ID.
+     * It returns a reactive Mono containing the response entity.
+     *
+     * @param id The unique identifier of the user to be retrieved.
+     * @return the {@link User} object if found
+     */
     @GetMapping()
     public Mono<ResponseEntity<MessageResponse<User>>> getUserById(@RequestParam("id") String id) {
         return userUseCase.getUserById(id)
@@ -39,6 +56,14 @@ public class ApiRest {
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con id " + id + " no encontrado")));
     }
 
+    /**
+     * Retrieves a user by their document number.
+     * This method handles a GET request to find a user using their document number.
+     * It returns a reactive Mono containing the response entity.
+     *
+     * @param documentNumber The unique document number of the user.
+     * @return the {@link User} object if found
+     */
     @GetMapping("/buscar")
     public Mono<ResponseEntity<MessageResponse<User>>> getUserByDocumentNumber(@RequestParam("document_number") String documentNumber) {
         return userUseCase.getUserByDocumentNumber(documentNumber)
@@ -50,6 +75,14 @@ public class ApiRest {
                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con numero de documento " + documentNumber + " no encontrado")));     
     }
     
+    /**
+     * Creates a new user.
+     * This method handles a POST request to create a new user.
+     * It returns a reactive Mono containing the response entity.
+     *
+     * @param user The user object to be created.
+     * @return the {@link User} object if created successfully
+     */
     @PostMapping()
     public Mono<ResponseEntity<MessageResponse<User>>> createUser(@RequestBody User user) {
         return Mono.just(user)
