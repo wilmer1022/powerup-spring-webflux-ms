@@ -1,7 +1,5 @@
 package co.com.wdgg.api.service;
 
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,6 +18,13 @@ public class AuthService {
         this.webClient = webClient;
     }
 
+    /**
+     * Validates if a user with the given document number exists in the authentication microservice.
+     * This method sends a GET request to the authentication microservice to check if the user exists.
+     * If the user is found, it returns the user object. If the user is not found, it throws an exception.
+     * @param userDocumentNumber
+     * @return the user object if found
+     */
     public Mono<User> validateUserExists(String userDocumentNumber) {
         return webClient.get().uri("/buscar?document_number={document_number}", userDocumentNumber)
                 .retrieve()
