@@ -1,5 +1,11 @@
--- User
+-- User and User Roles
 BEGIN;
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    role VARCHAR(100) NOT NULL,
+    description VARCHAR(255) NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -10,12 +16,24 @@ CREATE TABLE IF NOT EXISTS users (
     address VARCHAR(255),
     phone_number VARCHAR(20),
     email VARCHAR(255) UNIQUE NOT NULL,
-    salary DECIMAL(10,2) NOT NULL
+    salary DECIMAL(10,2) NOT NULL,
+    role_id UUID NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES user_roles(id)
 );
 
 CREATE UNIQUE INDEX idx_users_document_number ON users (document_number);
 CREATE UNIQUE INDEX idx_users_email ON users (email);
 ALTER TABLE users ADD CONSTRAINT check_birth_date CHECK (birth_date <= CURRENT_DATE);
+COMMIT;
+
+-- Insert roles
+
+BEGIN;
+
+INSERT INTO user_roles (id, role, description) VALUES
+    (gen_random_uuid(), 'USER', 'User'),
+    (gen_random_uuid(), 'ADMIN', 'Admin');
+
 COMMIT;
 
 -- Application
