@@ -8,6 +8,13 @@ This project is a sample application that demonstrates the use of Spring WebFlux
 - Java Development Kit (JDK) 17 or higher
 - Gradle 7.6 or higher
 
+## Microservices
+
+The application is composed of the following microservices:
+
+- **authentication_ms**: Microservice that manages user authentication and authorization. Run on port 8080.
+- **application_ms**: Microservice that manages application registration and management. Run on port 8081.
+
 ## TODO:
 
 - [ ] Add more documentation

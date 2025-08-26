@@ -2,6 +2,7 @@ package co.com.wdgg.r2dbc;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
+import co.com.wdgg.r2dbc.entities.ApplicationEntity;
 import reactor.core.publisher.Flux;
 
 import java.util.UUID;
@@ -15,7 +16,7 @@ import java.util.UUID;
  * @version 0.0.1
  * @since 2023-08-25
  */
-public interface MyReactiveRepository extends ReactiveCrudRepository<ApplicationEntity, UUID> {
+public interface ApplicationReactiveRepository extends ReactiveCrudRepository<ApplicationEntity, UUID> {
 
     /**
      * Finds applications by their user document number.

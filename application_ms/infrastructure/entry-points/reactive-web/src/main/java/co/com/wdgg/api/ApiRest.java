@@ -2,22 +2,25 @@ package co.com.wdgg.api;
 
 import lombok.AllArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.com.wdgg.api.dto.ApplicationRequest;
+import co.com.wdgg.api.dto.ApplicationResponse;
 import co.com.wdgg.api.dto.MessageResponse;
 import co.com.wdgg.api.exceptions.ApplicationNotFoundException;
 import co.com.wdgg.api.service.AuthService;
-import co.com.wdgg.api.validators.ApplicationValidator;
 import co.com.wdgg.model.application.Application;
+import co.com.wdgg.model.applicationcredittype.ApplicationCreditType;
 import co.com.wdgg.usecase.application.ApplicationUseCase;
 import reactor.core.publisher.Mono;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,23 +42,31 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class ApiRest {
 
         private final ApplicationUseCase applicationUseCase;
-        private final ApplicationValidator applicationValidator;
         private final AuthService authService;
 
         /**
          * Retrieves an application by its unique ID.
          * This method handles a GET request to find an application using its ID.
          * It returns a reactive Mono containing the response entity.
+         * 
          * @param id
          * @return
          */
         @GetMapping()
-        public Mono<ResponseEntity<MessageResponse<Application>>> getApplicationById(@RequestParam("id") String id) {
+        public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> getApplicationById(@RequestParam("id") String id) {
                 return applicationUseCase.getApplicationById(id)
                                 .map(applicationRetrieved -> ResponseEntity.status(HttpStatus.OK)
-                                                .body(MessageResponse.<Application>builder()
+                                                .body(MessageResponse.<ApplicationResponse>builder()
                                                                 .message("Solicitud encontrada")
-                                                                .data(applicationRetrieved)
+                                                                .data(new ApplicationResponse(
+                                                                        applicationRetrieved.id(),
+                                                                        applicationRetrieved.userDocumentNumber(),
+                                                                        applicationRetrieved.amount(),
+                                                                        applicationRetrieved.creditPeriod(),
+                                                                        applicationRetrieved.applicationCreditType() != null ? applicationRetrieved.applicationCreditType().creditType() : null,
+                                                                        applicationRetrieved.applicationCreditType() != null ? applicationRetrieved.applicationCreditType().interestRate() : null,
+                                                                        applicationRetrieved.applicationStatus() != null ? applicationRetrieved.applicationStatus().description() : null
+                                                                ))
                                                                 .build()))
                                 .switchIfEmpty(Mono.error(new ApplicationNotFoundException(
                                                 "Solicitud con id " + id + " no encontrada")));
@@ -63,8 +74,10 @@ public class ApiRest {
 
         /**
          * Retrieves an application by its user document number.
-         * This method handles a GET request to find an application using its user document number.
+         * This method handles a GET request to find an application using its user
+         * document number.
          * It returns a reactive Mono containing the response entity.
+         * 
          * @param userDocumentNumber
          * @return
          */
@@ -91,28 +104,46 @@ public class ApiRest {
          * Creates a new application.
          * This method handles a POST request to create a new application.
          * It returns a reactive Mono containing the response entity.
+         * 
          * @param application
          * @return
          */
         @PostMapping()
-        public Mono<ResponseEntity<MessageResponse<Application>>> createApplication(
-                        @RequestBody Application application) {
-                // Validate if the user exists and if the application is valid
+        public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> createApplication(
+                        @RequestBody ApplicationRequest applicationRequest) {
+                final ApplicationCreditType applicationCreditType = new ApplicationCreditType(
+                        UUID.fromString(applicationRequest.creditType()),
+                        null,
+                        null,
+                        null,
+                        BigDecimal.ZERO,
+                        false);
+                final Application application = new Application(
+                        null,
+                        applicationRequest.userDocumentNumber(),
+                        applicationRequest.amount(),
+                        applicationRequest.creditPeriod(),
+                        null,
+                        applicationCreditType);
+                // Validate if the user exists
                 return authService.validateUserExists(application.userDocumentNumber())
                                 .flatMap(user -> Mono.just(application)
-                                                .doOnNext(a -> applicationValidator.validate(application,
-                                                                new BeanPropertyBindingResult(application,
-                                                                                "application")))
                                                 .flatMap(validatedApplication -> applicationUseCase
                                                                 .createApplication(validatedApplication)
                                                                 .map(createdApplication -> ResponseEntity
                                                                                 .status(HttpStatus.CREATED)
                                                                                 .body(MessageResponse
-                                                                                                .<Application>builder()
+                                                                                                .<ApplicationResponse>builder()
                                                                                                 .message("Solicitud creada")
-                                                                                                .data(createdApplication)
-                                                                                                .build()))))
-                                .onErrorResume(IllegalArgumentException.class,
-                                                ex -> Mono.error(new IllegalArgumentException(ex.getMessage())));
+                                                                                                .data(new ApplicationResponse(
+                                                                                                        createdApplication.id(),
+                                                                                                        createdApplication.userDocumentNumber(),
+                                                                                                        createdApplication.amount(),
+                                                                                                        createdApplication.creditPeriod(),
+                                                                                                        createdApplication.applicationCreditType() != null ? createdApplication.applicationCreditType().creditType() : null,
+                                                                                                        createdApplication.applicationCreditType() != null ? createdApplication.applicationCreditType().interestRate() : null,
+                                                                                                        createdApplication.applicationStatus() != null ? createdApplication.applicationStatus().description() : null
+                                                                                                ))
+                                                                                                .build()))));
         }
 }

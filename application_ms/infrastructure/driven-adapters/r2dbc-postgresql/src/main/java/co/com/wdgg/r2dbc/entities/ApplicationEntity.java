@@ -1,6 +1,7 @@
-package co.com.wdgg.r2dbc;
+package co.com.wdgg.r2dbc.entities;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -29,19 +30,17 @@ public class ApplicationEntity {
     private BigDecimal amount;
 
     @Column("credit_period")
-    private LocalDate creditPeriod;
+    private LocalDate creditPeriod; 
 
-    @Column("credit_type")
-    private String creditType;
+    @Column("application_status_id")
+    private UUID applicationStatusId;
 
-    @Column("credit_status")
-    private String creditStatus;
+    @Column("application_credit_type_id")
+    private UUID applicationCreditTypeId;
 
-    public ApplicationEntity(String userDocumentNumber, BigDecimal amount, LocalDate creditPeriod,
-            String creditType) {
-        this.userDocumentNumber = userDocumentNumber;
-        this.amount = amount;
-        this.creditPeriod = creditPeriod;
-        this.creditType = creditType;
-    }
+    @Transient
+    private ApplicationStatusEntity applicationStatus;
+
+    @Transient
+    private ApplicationCreditTypeEntity applicationCreditType;
 }
