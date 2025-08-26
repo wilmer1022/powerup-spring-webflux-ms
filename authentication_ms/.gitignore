@@ -161,6 +161,7 @@ modules.xml
 *.class
 
 # Log file
+log-*.gz
 *.log
 
 # BlueJ files

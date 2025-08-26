@@ -1,8 +1,11 @@
-package co.com.wdgg.r2dbc;
+package co.com.wdgg.r2dbc.entities;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+
+import co.com.wdgg.model.userrole.UserRole;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -45,4 +48,10 @@ public class UserEntity {
 
     @Column("salary")
     private BigDecimal salary;
+
+    @Column("role_id")
+    private UUID roleId;
+
+    @Transient
+    private UserRole role;
 }

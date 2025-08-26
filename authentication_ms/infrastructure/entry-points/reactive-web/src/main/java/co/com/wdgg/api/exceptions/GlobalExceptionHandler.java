@@ -1,11 +1,14 @@
 package co.com.wdgg.api.exceptions;
 
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.support.WebExchangeBindException;
 
 import co.com.wdgg.api.dto.MessageResponse;
 import reactor.core.publisher.Mono;
@@ -43,5 +46,16 @@ public class GlobalExceptionHandler {
                 .message("El usuario no se encuentra!")
                 .data(null)
                 .build()));
+    }
+
+    @ExceptionHandler(WebExchangeBindException.class)
+    public Mono<ResponseEntity<MessageResponse<Void>>> handleValidationExceptions(WebExchangeBindException ex) {
+        logger.error("Validation exception [{}]", ex.getMessage());
+
+        MessageResponse<Void> errorResponse = MessageResponse.<Void>builder()
+            .message("Error de validación")
+            .build();
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
     }
 }
