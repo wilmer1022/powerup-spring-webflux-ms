@@ -1,14 +1,10 @@
 package co.com.wdgg.usecase.application;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import co.com.wdgg.model.application.Application;
 import co.com.wdgg.model.application.gateways.ApplicationRepository;
-import co.com.wdgg.model.application.validators.ApplicationValidator;
 import co.com.wdgg.model.applicationcredittype.ApplicationCreditType;
 import co.com.wdgg.model.applicationstatus.ApplicationStatus;
+import co.com.wdgg.usecase.application.validators.ApplicationValidator;
 import co.com.wdgg.usecase.applicationcredittype.ApplicationCreditTypeUseCase;
 import co.com.wdgg.usecase.applicationstatus.ApplicationStatusUseCase;
 import lombok.RequiredArgsConstructor;

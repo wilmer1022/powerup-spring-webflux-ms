@@ -1,4 +1,4 @@
-package co.com.wdgg.model.application.validators;
+package co.com.wdgg.usecase.application.validators;
 
 import java.math.BigDecimal;
 
