@@ -53,5 +53,5 @@ public class UserEntity {
     private UUID roleId;
 
     @Transient
-    private UserRole role;
+    private UserRoleEntity role;
 }
