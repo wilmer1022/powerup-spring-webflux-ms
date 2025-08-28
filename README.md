@@ -38,5 +38,5 @@ To build the application, use the following command:
 ## TODO:
 
 - [ ] Add more documentation
-- [ ] Add tests
-- [ ] Add swagger documentation
+- [x] Add tests
+- [x] Add swagger documentation

@@ -22,6 +22,10 @@ import co.com.wdgg.api.service.AuthService;
 import co.com.wdgg.model.application.Application;
 import co.com.wdgg.model.applicationcredittype.ApplicationCreditType;
 import co.com.wdgg.usecase.application.ApplicationUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import reactor.core.publisher.Mono;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,6 +56,11 @@ public class ApiRest {
          * @param id
          * @return
          */
+        @Operation(summary = "Buscar una solicitud por su ID", description = "Recibe el ID del usuario (String) para buscarla.", tags = {"Solicitudes"}, responses = {
+                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+        })
         @GetMapping()
         public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> getApplicationById(@RequestParam("id") String id) {
                 return applicationUseCase.getApplicationById(id)
@@ -81,6 +90,11 @@ public class ApiRest {
          * @param userDocumentNumber
          * @return
          */
+        @Operation(summary = "Buscar una solicitud por su documento", description = "Recibe un número de documento (String) para buscarla.", tags = {"Solicitudes"}, responses = {
+                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+        })
         @GetMapping("/buscar")
         public Mono<ResponseEntity<MessageResponse<List<Application>>>> getApplicationByUserDocumentNumber(
                         @RequestParam("user_document_number") String userDocumentNumber) {
@@ -108,6 +122,11 @@ public class ApiRest {
          * @param application
          * @return
          */
+        @Operation(summary = "Crear una nueva solicitud", description = "Recibe un objeto ApplicationRequest para crear una nueva solicitud.", tags = {"Solicitudes"}, responses = {
+                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+        })
         @PostMapping()
         public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> createApplication(
                         @RequestBody ApplicationRequest applicationRequest) {
