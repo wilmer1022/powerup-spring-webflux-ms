@@ -1,11 +1,8 @@
 package co.com.wdgg.api;
 
-import lombok.AllArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +14,10 @@ import co.com.wdgg.api.dto.UserResponse;
 import co.com.wdgg.api.exceptions.UserNotFoundException;
 import co.com.wdgg.model.user.User;
 import co.com.wdgg.usecase.user.UserUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import reactor.core.publisher.Mono;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,10 +34,13 @@ import org.springframework.web.bind.annotation.RequestBody;
  */
 @RestController
 @RequestMapping(value = "/api/v1/usuarios", produces = MediaType.APPLICATION_JSON_VALUE)
-@AllArgsConstructor
 public class ApiRest {
 
         private final UserUseCase userUseCase;
+
+        public ApiRest(UserUseCase userUseCase) {
+                this.userUseCase = userUseCase;
+        }
 
         /**
          * Retrieves a user by their unique ID.
@@ -46,6 +50,11 @@ public class ApiRest {
          * @param id The unique identifier of the user to be retrieved.
          * @return the {@link User} object if found
          */
+        @Operation(summary = "Buscar un usuario por su ID", description = "Recibe el ID del usuario (String) para buscarlo.", tags = {"Usuarios"}, responses = {
+                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+        })
         @GetMapping()
         public Mono<ResponseEntity<MessageResponse<UserResponse>>> getUserById(@RequestParam("id") String id) {
                 return userUseCase.getUserById(id)
@@ -75,6 +84,11 @@ public class ApiRest {
          * @param documentNumber The unique document number of the user.
          * @return the {@link User} object if found
          */
+        @Operation(summary = "Buscar un usuario por su documento", description = "Recibe un número de documento (String) para buscarlo.", tags = {"Usuarios"}, responses = {
+                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+        })
         @GetMapping("/buscar")
         public Mono<ResponseEntity<MessageResponse<UserResponse>>> getUserByDocumentNumber(
                         @RequestParam("document_number") String documentNumber) {
@@ -105,6 +119,11 @@ public class ApiRest {
          * @param user The user object to be created.
          * @return the {@link User} object if created successfully
          */
+        @Operation(summary = "Registrar un nuevo usuario", description = "Recibe un objeto UserRequest para guardar la informacion del usuario en la base de datos.", tags = {"Usuarios"}, responses = {
+                        @ApiResponse(responseCode = "200", description = "Usuario guardado correctamente"),
+                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+        })
         @PostMapping()
         public Mono<ResponseEntity<MessageResponse<UserResponse>>> createUser(@RequestBody UserRequest userRequest) {
                 return userUseCase.createUser(new User(null, userRequest.documentNumber(), userRequest.firstName(),
