@@ -48,6 +48,7 @@ class UserUseCaseTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 userRole
         );
@@ -109,6 +110,7 @@ class UserUseCaseTest {
                 validUser.address(),
                 validUser.phoneNumber(),
                 "invalid-email",
+                validUser.password(),
                 validUser.salary(),
                 validUser.role()
         );
@@ -130,6 +132,7 @@ class UserUseCaseTest {
                 validUser.address(),
                 validUser.phoneNumber(),
                 validUser.email(),
+                validUser.password(),
                 new BigDecimal("-1"),
                 validUser.role()
         );
@@ -151,6 +154,7 @@ class UserUseCaseTest {
                 validUser.address(),
                 validUser.phoneNumber(),
                 validUser.email(),
+                validUser.password(),
                 new BigDecimal("15000001"),
                 validUser.role()
         );

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     address VARCHAR(255),
     phone_number VARCHAR(20),
     email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     salary DECIMAL(10,2) NOT NULL,
     role_id UUID NOT NULL,
     FOREIGN KEY (role_id) REFERENCES user_roles(id)
@@ -31,7 +32,8 @@ COMMIT;
 BEGIN;
 
 INSERT INTO user_roles (id, role, description) VALUES
-    (gen_random_uuid(), 'USER', 'User'),
+    (gen_random_uuid(), 'CLIENTE', 'Cliente'),
+    (gen_random_uuid(), 'ASESOR', 'Asesor'),
     (gen_random_uuid(), 'ADMIN', 'Admin');
 
 COMMIT;

@@ -1,16 +1,18 @@
 package co.com.wdgg.api.exceptions;
 
-import java.util.stream.Collectors;
+import java.nio.file.AccessDeniedException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.support.WebExchangeBindException;
 
 import co.com.wdgg.api.dto.MessageResponse;
+import io.jsonwebtoken.JwtException;
 import reactor.core.publisher.Mono;
 
 @ControllerAdvice
@@ -57,5 +59,25 @@ public class GlobalExceptionHandler {
             .build();
 
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public Mono<ResponseEntity<MessageResponse<String>>> handleAccessDeniedException(AccessDeniedException ex) {
+        logger.error("Access denied [{}]", ex.getMessage());
+
+        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(MessageResponse.<String>builder()
+                .message(ex.getMessage())
+                .data(null)
+                .build()));
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public Mono<ResponseEntity<MessageResponse<String>>> handleJwtException(JwtException ex) {
+        logger.error("JWT exception [{}]", ex.getMessage());
+
+        return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(MessageResponse.<String>builder()
+                .message(ex.getMessage())
+                .data(null)
+                .build()));
     }
 }

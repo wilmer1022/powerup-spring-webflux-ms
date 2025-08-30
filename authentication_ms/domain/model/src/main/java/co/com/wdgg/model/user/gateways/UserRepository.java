@@ -12,4 +12,6 @@ public interface UserRepository {
     Mono<User> getUserByEmail(String email);
 
     Mono<User> createUser(User user);
+
+    Mono<Boolean> validateUserPassword(String chiperPassword, String password);
 }

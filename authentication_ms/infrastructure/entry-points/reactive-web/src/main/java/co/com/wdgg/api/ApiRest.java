@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.com.wdgg.api.dto.MessageResponse;
+import co.com.wdgg.api.dto.SignInRequest;
+import co.com.wdgg.api.dto.SignInResponse;
+import co.com.wdgg.api.dto.UserDTO;
 import co.com.wdgg.api.dto.UserRequest;
 import co.com.wdgg.api.dto.UserResponse;
 import co.com.wdgg.api.exceptions.UserNotFoundException;
+import co.com.wdgg.api.services.JwtService;
 import co.com.wdgg.model.user.User;
 import co.com.wdgg.usecase.user.UserUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,13 +37,15 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @since 2023-08-25
  */
 @RestController
-@RequestMapping(value = "/api/v1/usuarios", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1", produces = MediaType.APPLICATION_JSON_VALUE)
 public class ApiRest {
 
         private final UserUseCase userUseCase;
+        private final JwtService jwtService;
 
-        public ApiRest(UserUseCase userUseCase) {
+        public ApiRest(UserUseCase userUseCase, JwtService jwtService) {
                 this.userUseCase = userUseCase;
+                this.jwtService = jwtService;
         }
 
         /**
@@ -50,12 +56,13 @@ public class ApiRest {
          * @param id The unique identifier of the user to be retrieved.
          * @return the {@link User} object if found
          */
-        @Operation(summary = "Buscar un usuario por su ID", description = "Recibe el ID del usuario (String) para buscarlo.", tags = {"Usuarios"}, responses = {
-                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
-                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-        })
-        @GetMapping()
+        @Operation(summary = "Buscar un usuario por su ID", description = "Recibe el ID del usuario (String) para buscarlo.", tags = {
+                        "Usuarios" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/usuarios")
         public Mono<ResponseEntity<MessageResponse<UserResponse>>> getUserById(@RequestParam("id") String id) {
                 return userUseCase.getUserById(id)
                                 .map(userRetrieved -> ResponseEntity.status(HttpStatus.OK)
@@ -84,12 +91,13 @@ public class ApiRest {
          * @param documentNumber The unique document number of the user.
          * @return the {@link User} object if found
          */
-        @Operation(summary = "Buscar un usuario por su documento", description = "Recibe un número de documento (String) para buscarlo.", tags = {"Usuarios"}, responses = {
-                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
-                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-        })
-        @GetMapping("/buscar")
+        @Operation(summary = "Buscar un usuario por su documento", description = "Recibe un número de documento (String) para buscarlo.", tags = {
+                        "Usuarios" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/usuarios/buscar")
         public Mono<ResponseEntity<MessageResponse<UserResponse>>> getUserByDocumentNumber(
                         @RequestParam("document_number") String documentNumber) {
                 return userUseCase.getUserByDocumentNumber(documentNumber)
@@ -119,16 +127,18 @@ public class ApiRest {
          * @param user The user object to be created.
          * @return the {@link User} object if created successfully
          */
-        @Operation(summary = "Registrar un nuevo usuario", description = "Recibe un objeto UserRequest para guardar la informacion del usuario en la base de datos.", tags = {"Usuarios"}, responses = {
-                        @ApiResponse(responseCode = "200", description = "Usuario guardado correctamente"),
-                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-        })
-        @PostMapping()
+        @Operation(summary = "Registrar un nuevo usuario", description = "Recibe un objeto UserRequest para guardar la informacion del usuario en la base de datos.", tags = {
+                        "Usuarios" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario guardado correctamente"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @PostMapping("/usuarios")
         public Mono<ResponseEntity<MessageResponse<UserResponse>>> createUser(@RequestBody UserRequest userRequest) {
                 return userUseCase.createUser(new User(null, userRequest.documentNumber(), userRequest.firstName(),
                                 userRequest.lastName(), userRequest.birthDate(), userRequest.address(),
-                                userRequest.phoneNumber(), userRequest.email(), userRequest.salary(), null))
+                                userRequest.phoneNumber(), userRequest.email(), userRequest.password(),
+                                userRequest.salary(), null))
                                 .map(createdUser -> ResponseEntity.status(HttpStatus.CREATED)
                                                 .body(MessageResponse.<UserResponse>builder()
                                                                 .message("Usuario creado")
@@ -142,6 +152,44 @@ public class ApiRest {
                                                                                 createdUser.address(),
                                                                                 createdUser.birthDate(),
                                                                                 createdUser.salary()))
+                                                                .build()));
+        }
+
+        /**
+         * Sign in a user by their email and password.
+         * This method handles a POST request to sign in a user.
+         * It returns a reactive Mono containing the response entity.
+         *
+         * @param email    The email of the user to be signed in.
+         * @param password The password of the user to be signed in.
+         * @return the {@link User} object if signed in successfully
+         */
+        @Operation(summary = "Iniciar sesión de un usuario", description = "Recibe el correo electrónico y la contraseña del usuario para iniciar sesión.", tags = {
+                        "Autenticación" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Inicio de sesión exitoso"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @PostMapping("/login")
+        public Mono<ResponseEntity<MessageResponse<SignInResponse>>> signInUser(
+                        @RequestBody SignInRequest singInRequest) {
+                return userUseCase.signInUser(singInRequest.email(), singInRequest.password())
+                                .map(userRetrieved -> ResponseEntity.status(HttpStatus.OK)
+                                                .body(MessageResponse.<SignInResponse>builder()
+                                                                .message("Inicio de sesión exitoso")
+                                                                .data(new SignInResponse(
+                                                                                new UserResponse(
+                                                                                                userRetrieved.id(),
+                                                                                                userRetrieved.documentNumber(),
+                                                                                                userRetrieved.firstName(),
+                                                                                                userRetrieved.lastName(),
+                                                                                                userRetrieved.email(),
+                                                                                                userRetrieved.phoneNumber(),
+                                                                                                userRetrieved.address(),
+                                                                                                userRetrieved.birthDate(),
+                                                                                                userRetrieved.salary()),
+                                                                                jwtService.generateToken(new UserDTO(
+                                                                                                userRetrieved))))
                                                                 .build()));
         }
 }
