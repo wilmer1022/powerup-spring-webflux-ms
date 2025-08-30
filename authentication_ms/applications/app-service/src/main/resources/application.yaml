@@ -34,3 +34,8 @@ adapters:
       initial-size: 12
       max-size: 15
       max-idle-time: 10
+
+security:
+  jwt:
+    secret-key: "aes_512_key.bin"
+    expiration-time: 3600000

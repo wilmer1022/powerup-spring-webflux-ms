@@ -49,6 +49,13 @@ public class UserValidator {
         return null;
     }
 
+    public String validatePassword() {
+        if (user.password() == null || user.password().isBlank()) {
+            return "La contraseña es obligatoria";
+        }
+        return null;
+    }
+
     public String validateSalary() {
         if (user.salary() == null) {
             return "El salario es obligatorio";

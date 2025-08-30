@@ -25,7 +25,9 @@ class UserValidatorTest {
                 LocalDate.of(1990, 1, 1),
                 "123 Main St",
                 "555-1234",
-                "john.doe@example.com", new BigDecimal("5000000"),
+                "john.doe@example.com", 
+                "mypass",
+                new BigDecimal("5000000"),
                 null);
     }
 
@@ -42,6 +44,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -60,6 +63,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -85,6 +89,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -103,6 +108,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -128,6 +134,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -146,6 +153,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -171,6 +179,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 null,
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -189,11 +198,50 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "   ",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
         UserValidator validator = new UserValidator(user);
         assertEquals("El correo electrónico es obligatorio", validator.validateEmail());
+    }
+
+    @Test
+    void validatePassword_withNull_returnsError() {
+        User user = new User(
+                UUID.randomUUID(),
+                "123456789",
+                "John",
+                "Doe",
+                LocalDate.of(1990, 1, 1),
+                "123 Main St",
+                "555-1234",
+                "john.doe@example.com",
+                null,
+                new BigDecimal("5000000"),
+                null
+        );
+        UserValidator validator = new UserValidator(user);
+        assertEquals("La contraseña es obligatoria", validator.validatePassword());
+    }
+    
+    @Test
+    void validatePassword_withBlank_returnsError() {
+        User user = new User(
+                UUID.randomUUID(),
+                "123456789",
+                "John",
+                "Doe",
+                LocalDate.of(1990, 1, 1),
+                "123 Main St",
+                "555-1234",
+                "john.doe@example.com",
+                "   ",
+                new BigDecimal("5000000"),
+                null
+        );
+        UserValidator validator = new UserValidator(user);
+        assertEquals("La contraseña es obligatoria", validator.validatePassword());
     }
 
     // --- Tests methods for format ---
@@ -209,6 +257,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "invalid-email-format",
+                "mypass",
                 new BigDecimal("5000000"),
                 null
         );
@@ -237,6 +286,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("0"),
                 null
         );
@@ -255,6 +305,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("15000000"),
                 null
         );
@@ -273,6 +324,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("-1"),
                 null
         );
@@ -291,6 +343,7 @@ class UserValidatorTest {
                 "123 Main St",
                 "555-1234",
                 "john.doe@example.com",
+                "mypass",
                 new BigDecimal("15000001"),
                 null
         );

@@ -14,7 +14,6 @@ public class UserUseCase {
 
     private final UserRepository userRepository;
     private final UserRoleUseCase userRoleUseCase;
-
     public UserUseCase(UserRepository userRepository, UserRoleUseCase userRoleUseCase) {
         this.userRepository = userRepository;
         this.userRoleUseCase = userRoleUseCase;
@@ -38,6 +37,7 @@ public class UserUseCase {
                     Mono.justOrEmpty(userValidator.validateFirstName()).subscribe(errors::add);
                     Mono.justOrEmpty(userValidator.validateLastName()).subscribe(errors::add);
                     Mono.justOrEmpty(userValidator.validateEmail()).subscribe(errors::add);
+                    Mono.justOrEmpty(userValidator.validatePassword()).subscribe(errors::add);
                     Mono.justOrEmpty(userValidator.validateSalary()).subscribe(errors::add);
                     Mono.justOrEmpty(userValidator.validateEmailForm()).subscribe(errors::add);
                     Mono.justOrEmpty(userValidator.validateSalaryForm()).subscribe(errors::add);
@@ -52,7 +52,7 @@ public class UserUseCase {
                             .flatMap(userRetrieved -> Mono.error(new IllegalArgumentException(
                                     "El correo electrónico " + u.email() + " ya está registrado")))
                             .switchIfEmpty(
-                                    Mono.defer(() -> userRoleUseCase.getUserRoleByRole("USER")
+                                    Mono.defer(() -> userRoleUseCase.getUserRoleByRole("CLIENTE")
                                             .switchIfEmpty(Mono.error(
                                                     new IllegalStateException("El rol por defecto 'USER' no existe")))
                                             .flatMap(userRole -> {
@@ -65,11 +65,22 @@ public class UserUseCase {
                                                         u.address(),
                                                         u.phoneNumber(),
                                                         u.email(),
+                                                        u.password(),
                                                         u.salary(),
                                                         userRole);
                                                 return userRepository.createUser(userWithRole);
                                             })))
                             .cast(User.class);
                 });
+    }
+
+    public Mono<User> signInUser(String email, String rawPassword) {
+        return userRepository.getUserByEmail(email)
+                .flatMap(user -> {
+                    if (userRepository.validateUserPassword(user.password(), rawPassword).block()) return Mono.just(user);
+
+                    return Mono.error(new IllegalArgumentException("El correo electrónico y/o contraseña son incorrectos"));
+                })
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("El correo electrónico y/o contraseña son incorrectos")));
     }
 }

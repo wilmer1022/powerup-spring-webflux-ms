@@ -8,6 +8,7 @@ import co.com.wdgg.model.user.gateways.UserRepository;
 import co.com.wdgg.model.userrole.UserRole;
 import co.com.wdgg.model.userrole.gateways.UserRoleRepository;
 import co.com.wdgg.r2dbc.entities.UserEntity;
+import co.com.wdgg.r2dbc.services.ChiperPasswordService;
 import co.com.wdgg.model.user.User;
 
 import reactor.core.publisher.Mono;
@@ -17,11 +18,14 @@ public class UserReactiveRepositoryAdapter implements UserRepository {
 
     private final UserReactiveRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final ChiperPasswordService chiperPasswordService;
 
     // Constructor actualizado para inyectar UserRoleUseCase
-    public UserReactiveRepositoryAdapter(UserReactiveRepository userRepository, UserRoleRepository userRoleRepository) {
+    public UserReactiveRepositoryAdapter(UserReactiveRepository userRepository, UserRoleRepository userRoleRepository,
+            ChiperPasswordService chiperPasswordService) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
+        this.chiperPasswordService = chiperPasswordService;
     }
 
     @Override
@@ -44,8 +48,25 @@ public class UserReactiveRepositoryAdapter implements UserRepository {
 
     @Override
     public Mono<User> createUser(User user) {
-        return userRepository.save(toEntity(user))
+        final User userPassEncoded = new User(
+                user.id(),
+                user.documentNumber(),
+                user.firstName(),
+                user.lastName(),
+                user.birthDate(),
+                user.address(),
+                user.phoneNumber(),
+                user.email(),
+                chiperPasswordService.encryptPassword(user.password()),
+                user.salary(),
+                user.role());
+        return userRepository.save(toEntity(userPassEncoded))
                 .flatMap(this::loadUserRoleAndToDomain);
+    }
+
+    @Override
+    public Mono<Boolean> validateUserPassword(String chiperPassword, String password) {
+        return Mono.just(chiperPasswordService.passwordsMatch(password, chiperPassword));
     }
 
     private UserEntity toEntity(User user) {
@@ -58,10 +79,10 @@ public class UserReactiveRepositoryAdapter implements UserRepository {
                 user.address(),
                 user.phoneNumber(),
                 user.email(),
+                user.password(),
                 user.salary(),
                 user.role() != null ? user.role().id() : null,
-                null
-        );
+                null);
     }
 
     private User toDomain(UserEntity userEntity, UserRole domainRole) {
@@ -74,9 +95,9 @@ public class UserReactiveRepositoryAdapter implements UserRepository {
                 userEntity.getAddress(),
                 userEntity.getPhoneNumber(),
                 userEntity.getEmail(),
+                userEntity.getPassword(),
                 userEntity.getSalary(),
-                domainRole
-        );
+                domainRole);
     }
 
     private Mono<User> loadUserRoleAndToDomain(UserEntity userEntity) {

@@ -42,9 +42,17 @@ class UserReactiveRepositoryAdapterTest {
         StepVerifier.create(result)
                 .expectNextMatches(user -> {
                     verify(userReactiveRepository, times(1)).findById(userId);
-                    return user.equals(new User(mockUser.getId(), mockUser.getDocumentNumber(), mockUser.getFirstName(),
-                            mockUser.getLastName(), mockUser.getBirthDate(), mockUser.getAddress(),
-                            mockUser.getPhoneNumber(), mockUser.getEmail(), mockUser.getSalary(), null));
+                    return user.equals(new User(mockUser.getId(),
+                            mockUser.getDocumentNumber(),
+                            mockUser.getFirstName(),
+                            mockUser.getLastName(),
+                            mockUser.getBirthDate(),
+                            mockUser.getAddress(),
+                            mockUser.getPhoneNumber(),
+                            mockUser.getEmail(),
+                            mockUser.getPassword(),
+                            mockUser.getSalary(),
+                            null));
                 })
                 .verifyComplete();
     }
@@ -87,9 +95,17 @@ class UserReactiveRepositoryAdapterTest {
         StepVerifier.create(result)
                 .expectNextMatches(user -> {
                     verify(userReactiveRepository, times(1)).findByDocumentNumber("123456789");
-                    return user.equals(new User(mockUser.getId(), mockUser.getDocumentNumber(), mockUser.getFirstName(),
-                            mockUser.getLastName(), mockUser.getBirthDate(), mockUser.getAddress(),
-                            mockUser.getPhoneNumber(), mockUser.getEmail(), mockUser.getSalary(), null));
+                    return user.equals(new User(mockUser.getId(),
+                            mockUser.getDocumentNumber(),
+                            mockUser.getFirstName(),
+                            mockUser.getLastName(),
+                            mockUser.getBirthDate(),
+                            mockUser.getAddress(),
+                            mockUser.getPhoneNumber(),
+                            mockUser.getEmail(),
+                            mockUser.getPassword(),
+                            mockUser.getSalary(),
+                            null));
                 })
                 .verifyComplete();
     }
