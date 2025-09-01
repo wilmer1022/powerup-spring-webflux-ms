@@ -54,7 +54,7 @@ public class UserUseCase {
                             .switchIfEmpty(
                                     Mono.defer(() -> userRoleUseCase.getUserRoleByRole("CLIENTE")
                                             .switchIfEmpty(Mono.error(
-                                                    new IllegalStateException("El rol por defecto 'USER' no existe")))
+                                                    new IllegalStateException("El rol por defecto 'CLIENTE' no existe")))
                                             .flatMap(userRole -> {
                                                 final User userWithRole = new User(
                                                         u.id(),
