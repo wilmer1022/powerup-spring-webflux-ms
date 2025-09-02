@@ -27,6 +27,10 @@ public class UserUseCase {
         return userRepository.getUserByDocumentNumber(documentNumber);
     }
 
+    public Mono<User> getUserByEmail(String email) {
+        return userRepository.getUserByEmail(email);
+    }
+
     public Mono<User> createUser(User user) {
         return Mono.just(user)
                 .flatMap(u -> {

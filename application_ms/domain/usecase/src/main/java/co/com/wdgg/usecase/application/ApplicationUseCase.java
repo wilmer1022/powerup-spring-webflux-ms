@@ -7,16 +7,20 @@ import co.com.wdgg.model.applicationstatus.ApplicationStatus;
 import co.com.wdgg.usecase.application.validators.ApplicationValidator;
 import co.com.wdgg.usecase.applicationcredittype.ApplicationCreditTypeUseCase;
 import co.com.wdgg.usecase.applicationstatus.ApplicationStatusUseCase;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@RequiredArgsConstructor
 public class ApplicationUseCase {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationCreditTypeUseCase applicationCreditTypeUseCase;
     private final ApplicationStatusUseCase applicationStatusUseCase;
+
+    public ApplicationUseCase(ApplicationRepository applicationRepository, ApplicationCreditTypeUseCase applicationCreditTypeUseCase, ApplicationStatusUseCase applicationStatusUseCase) {
+        this.applicationRepository = applicationRepository;
+        this.applicationCreditTypeUseCase = applicationCreditTypeUseCase;
+        this.applicationStatusUseCase = applicationStatusUseCase;
+    }
 
     public Mono<Application> getApplicationById(String id) {
         return applicationRepository.getApplicationById(id);

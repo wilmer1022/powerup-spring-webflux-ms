@@ -53,7 +53,7 @@ public class SecurityConfiguration {
                                                                         .subscribe();
                                                 })))
                                 .authorizeExchange(exchanges -> exchanges
-                                                .pathMatchers("/api/v1/login", "/swagger-ui.html", "/swagger-ui/**",
+                                                .pathMatchers("/swagger-ui.html", "/swagger-ui/**",
                                                                 "/swagger-resources/**", "/v3/api-docs/**")
                                                 .permitAll()
                                                 .pathMatchers(HttpMethod.POST, "/api/v1/solicitud")

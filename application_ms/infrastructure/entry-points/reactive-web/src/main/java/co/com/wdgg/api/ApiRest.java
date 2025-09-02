@@ -1,15 +1,14 @@
 package co.com.wdgg.api;
 
-import lombok.AllArgsConstructor;
-
 import java.util.List;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.com.wdgg.api.dto.ApplicationMapper;
@@ -47,7 +46,8 @@ public class ApiRest {
         private final ApplicationMapper applicationMapper;
         private final AuthService authService;
 
-        public ApiRest(ApplicationUseCase applicationUseCase, ApplicationMapper applicationMapper, AuthService authService) {
+        public ApiRest(ApplicationUseCase applicationUseCase, ApplicationMapper applicationMapper,
+                        AuthService authService) {
                 this.applicationUseCase = applicationUseCase;
                 this.applicationMapper = applicationMapper;
                 this.authService = authService;
@@ -67,9 +67,12 @@ public class ApiRest {
                                         @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
                                         @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
                         })
-        @GetMapping()
+        @GetMapping("/{id}")
         public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> getApplicationById(
-                        @RequestParam("id") String id) {
+                @Schema(
+                        description = "Identificador único de la solicitud"
+                )    
+                @PathVariable("id") String id) {
                 return applicationUseCase.getApplicationById(id)
                                 .map(applicationRetrieved -> ResponseEntity.status(HttpStatus.OK)
                                                 .body(MessageResponse.<ApplicationResponse>builder()
@@ -96,21 +99,30 @@ public class ApiRest {
                                         @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
                                         @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
                         })
-        @GetMapping("/buscar")
-        public Mono<ResponseEntity<MessageResponse<List<Application>>>> getApplicationByUserEmail(
-                        @RequestParam("user_email") String userEmail) {
+        @GetMapping("/buscar/{user_email}")
+        public Mono<ResponseEntity<MessageResponse<List<ApplicationResponse>>>> getApplicationByUserEmail(
+                        @Schema(
+                                description = "Correo electrónico del usuario",
+                                format = "email"
+                        )  
+                        @PathVariable("user_email") String userEmail) {
                 return applicationUseCase.getApplicationByUserEmail(userEmail)
                                 .collectList()
-                                .flatMap(applicationRetrieved -> {
-                                        if (applicationRetrieved.isEmpty()) {
+                                .flatMap(applicationRetrievedList -> {
+                                        if (applicationRetrievedList.isEmpty()) {
                                                 return Mono.error(new ApplicationNotFoundException(
                                                                 "Solicitudes con el correo electrónico " + userEmail
                                                                                 + " no encontradas"));
                                         }
+
+                                        List<ApplicationResponse> responseList = applicationRetrievedList.stream()
+                                                        .map(applicationMapper::toResponse)
+                                                        .toList();
+
                                         return Mono.just(ResponseEntity.status(HttpStatus.OK)
-                                                        .body(MessageResponse.<List<Application>>builder()
+                                                        .body(MessageResponse.<List<ApplicationResponse>>builder()
                                                                         .message("Solicitudes encontradas")
-                                                                        .data(applicationRetrieved)
+                                                                        .data(responseList)
                                                                         .build()));
                                 });
         }

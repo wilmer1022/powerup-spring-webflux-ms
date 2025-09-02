@@ -2,7 +2,7 @@ package co.com.wdgg.api.services;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -30,7 +30,7 @@ public class AuthService {
         return webClient.get().uri("/buscar-por-email?email={document_number}", userEmail)
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .retrieve()
-                .onStatus(HttpStatus.NOT_FOUND::equals, response -> Mono.error(new UserNotFoundException(
+                .onStatus(HttpStatusCode::is4xxClientError, response -> Mono.error(new UserNotFoundException(
                         "Usuario con correo electrónico " + userEmail + " no encontrado")))
                 .bodyToMono(User.class);
     }

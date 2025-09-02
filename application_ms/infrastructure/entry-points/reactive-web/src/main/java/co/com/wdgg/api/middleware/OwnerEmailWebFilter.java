@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import co.com.wdgg.api.services.JwtService;
 
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -34,6 +35,11 @@ public class OwnerEmailWebFilter implements WebFilter {
 
     @Override
     public @NonNull Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
+        String path = exchange.getRequest().getURI().getPath();
+        if (!path.equals("/api/v1/solicitud") && !exchange.getRequest().getMethod().equals(HttpMethod.POST)) {
+            return chain.filter(exchange);
+        }
+
         String authorizationHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
