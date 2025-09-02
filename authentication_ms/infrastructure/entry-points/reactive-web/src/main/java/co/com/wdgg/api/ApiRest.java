@@ -12,6 +12,7 @@ import co.com.wdgg.api.dto.MessageResponse;
 import co.com.wdgg.api.dto.SignInRequest;
 import co.com.wdgg.api.dto.SignInResponse;
 import co.com.wdgg.api.dto.UserDTO;
+import co.com.wdgg.api.dto.UserMapper;
 import co.com.wdgg.api.dto.UserRequest;
 import co.com.wdgg.api.dto.UserResponse;
 import co.com.wdgg.api.exceptions.UserNotFoundException;
@@ -42,10 +43,12 @@ public class ApiRest {
 
         private final UserUseCase userUseCase;
         private final JwtService jwtService;
+        private final UserMapper userMapper;
 
-        public ApiRest(UserUseCase userUseCase, JwtService jwtService) {
+        public ApiRest(UserUseCase userUseCase, JwtService jwtService, UserMapper userMapper) {
                 this.userUseCase = userUseCase;
                 this.jwtService = jwtService;
+                this.userMapper = userMapper;
         }
 
         /**
@@ -68,16 +71,7 @@ public class ApiRest {
                                 .map(userRetrieved -> ResponseEntity.status(HttpStatus.OK)
                                                 .body(MessageResponse.<UserResponse>builder()
                                                                 .message("Usuario encontrado")
-                                                                .data(new UserResponse(
-                                                                                userRetrieved.id(),
-                                                                                userRetrieved.documentNumber(),
-                                                                                userRetrieved.firstName(),
-                                                                                userRetrieved.lastName(),
-                                                                                userRetrieved.email(),
-                                                                                userRetrieved.phoneNumber(),
-                                                                                userRetrieved.address(),
-                                                                                userRetrieved.birthDate(),
-                                                                                userRetrieved.salary()))
+                                                                .data(userMapper.toResponse(userRetrieved))
                                                                 .build()))
                                 .switchIfEmpty(Mono.error(
                                                 new UserNotFoundException("Usuario con id " + id + " no encontrado")));
@@ -104,19 +98,36 @@ public class ApiRest {
                                 .map(userRetrieved -> ResponseEntity.status(HttpStatus.OK)
                                                 .body(MessageResponse.<UserResponse>builder()
                                                                 .message("Usuario encontrado")
-                                                                .data(new UserResponse(
-                                                                                userRetrieved.id(),
-                                                                                userRetrieved.documentNumber(),
-                                                                                userRetrieved.firstName(),
-                                                                                userRetrieved.lastName(),
-                                                                                userRetrieved.email(),
-                                                                                userRetrieved.phoneNumber(),
-                                                                                userRetrieved.address(),
-                                                                                userRetrieved.birthDate(),
-                                                                                userRetrieved.salary()))
+                                                                .data(userMapper.toResponse(userRetrieved))
                                                                 .build()))
                                 .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con numero de documento "
                                                 + documentNumber + " no encontrado")));
+        }
+
+        /**
+         * Retrieves a user by their email.
+         * This method handles a GET request to find a user using their email.
+         * It returns a reactive Mono containing the response entity.
+         *
+         * @param email
+         * @return
+         */
+        @Operation(summary = "Buscar un usuario por su correo electrónico", description = "Recibe un correo electrónico (String) para buscarlo.", tags = {
+                        "Usuarios" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/usuarios/buscar-por-email")
+        public Mono<ResponseEntity<MessageResponse<UserResponse>>> getUserByEmail(@RequestParam("email") String email) {
+                return userUseCase.getUserByEmail(email)
+                                .map(userRetrieved -> ResponseEntity.status(HttpStatus.OK)
+                                                .body(MessageResponse.<UserResponse>builder()
+                                                                .message("Usuario encontrado")
+                                                                .data(userMapper.toResponse(userRetrieved))
+                                                                .build()))
+                                .switchIfEmpty(Mono.error(new UserNotFoundException("Usuario con correo electrónico "
+                                                + email + " no encontrado")));
         }
 
         /**
@@ -142,16 +153,7 @@ public class ApiRest {
                                 .map(createdUser -> ResponseEntity.status(HttpStatus.CREATED)
                                                 .body(MessageResponse.<UserResponse>builder()
                                                                 .message("Usuario creado")
-                                                                .data(new UserResponse(
-                                                                                createdUser.id(),
-                                                                                createdUser.documentNumber(),
-                                                                                createdUser.firstName(),
-                                                                                createdUser.lastName(),
-                                                                                createdUser.email(),
-                                                                                createdUser.phoneNumber(),
-                                                                                createdUser.address(),
-                                                                                createdUser.birthDate(),
-                                                                                createdUser.salary()))
+                                                                .data(userMapper.toResponse(createdUser))
                                                                 .build()));
         }
 
@@ -178,16 +180,7 @@ public class ApiRest {
                                                 .body(MessageResponse.<SignInResponse>builder()
                                                                 .message("Inicio de sesión exitoso")
                                                                 .data(new SignInResponse(
-                                                                                new UserResponse(
-                                                                                                userRetrieved.id(),
-                                                                                                userRetrieved.documentNumber(),
-                                                                                                userRetrieved.firstName(),
-                                                                                                userRetrieved.lastName(),
-                                                                                                userRetrieved.email(),
-                                                                                                userRetrieved.phoneNumber(),
-                                                                                                userRetrieved.address(),
-                                                                                                userRetrieved.birthDate(),
-                                                                                                userRetrieved.salary()),
+                                                                                userMapper.toResponse(userRetrieved),
                                                                                 jwtService.generateToken(new UserDTO(
                                                                                                 userRetrieved))))
                                                                 .build()));

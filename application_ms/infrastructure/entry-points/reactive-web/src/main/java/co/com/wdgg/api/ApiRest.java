@@ -1,26 +1,23 @@
 package co.com.wdgg.api;
 
-import lombok.AllArgsConstructor;
-
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.com.wdgg.api.dto.ApplicationMapper;
 import co.com.wdgg.api.dto.ApplicationRequest;
 import co.com.wdgg.api.dto.ApplicationResponse;
 import co.com.wdgg.api.dto.MessageResponse;
 import co.com.wdgg.api.exceptions.ApplicationNotFoundException;
-import co.com.wdgg.api.service.AuthService;
+import co.com.wdgg.api.services.AuthService;
 import co.com.wdgg.model.application.Application;
-import co.com.wdgg.model.applicationcredittype.ApplicationCreditType;
 import co.com.wdgg.usecase.application.ApplicationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import reactor.core.publisher.Mono;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 /**
  * REST controller for managing application-related operations.
@@ -42,11 +40,18 @@ import org.springframework.web.bind.annotation.RequestBody;
  */
 @RestController
 @RequestMapping(value = "/api/v1/solicitud", produces = MediaType.APPLICATION_JSON_VALUE)
-@AllArgsConstructor
 public class ApiRest {
 
         private final ApplicationUseCase applicationUseCase;
+        private final ApplicationMapper applicationMapper;
         private final AuthService authService;
+
+        public ApiRest(ApplicationUseCase applicationUseCase, ApplicationMapper applicationMapper,
+                        AuthService authService) {
+                this.applicationUseCase = applicationUseCase;
+                this.applicationMapper = applicationMapper;
+                this.authService = authService;
+        }
 
         /**
          * Retrieves an application by its unique ID.
@@ -56,60 +61,68 @@ public class ApiRest {
          * @param id
          * @return
          */
-        @Operation(summary = "Buscar una solicitud por su ID", description = "Recibe el ID del usuario (String) para buscarla.", tags = {"Solicitudes"}, responses = {
-                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
-                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-        })
-        @GetMapping()
-        public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> getApplicationById(@RequestParam("id") String id) {
+        @Operation(summary = "Buscar una solicitud por su ID", description = "Recibe el ID del usuario (String) para buscarla.", tags = {
+                        "Solicitudes" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/{id}")
+        public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> getApplicationById(
+                @Schema(
+                        description = "Identificador único de la solicitud"
+                )    
+                @PathVariable("id") String id) {
                 return applicationUseCase.getApplicationById(id)
                                 .map(applicationRetrieved -> ResponseEntity.status(HttpStatus.OK)
                                                 .body(MessageResponse.<ApplicationResponse>builder()
                                                                 .message("Solicitud encontrada")
-                                                                .data(new ApplicationResponse(
-                                                                        applicationRetrieved.id(),
-                                                                        applicationRetrieved.userDocumentNumber(),
-                                                                        applicationRetrieved.amount(),
-                                                                        applicationRetrieved.creditPeriod(),
-                                                                        applicationRetrieved.applicationCreditType() != null ? applicationRetrieved.applicationCreditType().creditType() : null,
-                                                                        applicationRetrieved.applicationCreditType() != null ? applicationRetrieved.applicationCreditType().interestRate() : null,
-                                                                        applicationRetrieved.applicationStatus() != null ? applicationRetrieved.applicationStatus().description() : null
-                                                                ))
+                                                                .data(applicationMapper
+                                                                                .toResponse(applicationRetrieved))
                                                                 .build()))
                                 .switchIfEmpty(Mono.error(new ApplicationNotFoundException(
                                                 "Solicitud con id " + id + " no encontrada")));
         }
 
         /**
-         * Retrieves an application by its user document number.
+         * Retrieves an application by its user email.
          * This method handles a GET request to find an application using its user
-         * document number.
+         * email.
          * It returns a reactive Mono containing the response entity.
          * 
-         * @param userDocumentNumber
+         * @param userEmail
          * @return
          */
-        @Operation(summary = "Buscar una solicitud por su documento", description = "Recibe un número de documento (String) para buscarla.", tags = {"Solicitudes"}, responses = {
-                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
-                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-        })
-        @GetMapping("/buscar")
-        public Mono<ResponseEntity<MessageResponse<List<Application>>>> getApplicationByUserDocumentNumber(
-                        @RequestParam("user_document_number") String userDocumentNumber) {
-                return applicationUseCase.getApplicationByUserDocumentNumber(userDocumentNumber)
+        @Operation(summary = "Buscar una solicitud por su correo electrónico", description = "Recibe un correo electrónico (String) para buscarla.", tags = {
+                        "Solicitudes" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/buscar/{user_email}")
+        public Mono<ResponseEntity<MessageResponse<List<ApplicationResponse>>>> getApplicationByUserEmail(
+                        @Schema(
+                                description = "Correo electrónico del usuario",
+                                format = "email"
+                        )  
+                        @PathVariable("user_email") String userEmail) {
+                return applicationUseCase.getApplicationByUserEmail(userEmail)
                                 .collectList()
-                                .flatMap(applicationRetrieved -> {
-                                        if (applicationRetrieved.isEmpty()) {
+                                .flatMap(applicationRetrievedList -> {
+                                        if (applicationRetrievedList.isEmpty()) {
                                                 return Mono.error(new ApplicationNotFoundException(
-                                                                "Solicitudes con el documento " + userDocumentNumber
+                                                                "Solicitudes con el correo electrónico " + userEmail
                                                                                 + " no encontradas"));
                                         }
+
+                                        List<ApplicationResponse> responseList = applicationRetrievedList.stream()
+                                                        .map(applicationMapper::toResponse)
+                                                        .toList();
+
                                         return Mono.just(ResponseEntity.status(HttpStatus.OK)
-                                                        .body(MessageResponse.<List<Application>>builder()
+                                                        .body(MessageResponse.<List<ApplicationResponse>>builder()
                                                                         .message("Solicitudes encontradas")
-                                                                        .data(applicationRetrieved)
+                                                                        .data(responseList)
                                                                         .build()));
                                 });
         }
@@ -122,47 +135,25 @@ public class ApiRest {
          * @param application
          * @return
          */
-        @Operation(summary = "Crear una nueva solicitud", description = "Recibe un objeto ApplicationRequest para crear una nueva solicitud.", tags = {"Solicitudes"}, responses = {
-                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
-                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
-                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
-        })
+        @Operation(summary = "Crear una nueva solicitud", description = "Recibe un objeto ApplicationRequest para crear una nueva solicitud.", tags = {
+                        "Solicitudes" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
         @PostMapping()
         public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> createApplication(
-                        @RequestBody ApplicationRequest applicationRequest) {
-                final ApplicationCreditType applicationCreditType = new ApplicationCreditType(
-                        UUID.fromString(applicationRequest.creditType()),
-                        null,
-                        null,
-                        null,
-                        BigDecimal.ZERO,
-                        false);
-                final Application application = new Application(
-                        null,
-                        applicationRequest.userDocumentNumber(),
-                        applicationRequest.amount(),
-                        applicationRequest.creditPeriod(),
-                        null,
-                        applicationCreditType);
-                // Validate if the user exists
-                return authService.validateUserExists(application.userDocumentNumber())
-                                .flatMap(user -> Mono.just(application)
-                                                .flatMap(validatedApplication -> applicationUseCase
-                                                                .createApplication(validatedApplication)
-                                                                .map(createdApplication -> ResponseEntity
-                                                                                .status(HttpStatus.CREATED)
-                                                                                .body(MessageResponse
-                                                                                                .<ApplicationResponse>builder()
-                                                                                                .message("Solicitud creada")
-                                                                                                .data(new ApplicationResponse(
-                                                                                                        createdApplication.id(),
-                                                                                                        createdApplication.userDocumentNumber(),
-                                                                                                        createdApplication.amount(),
-                                                                                                        createdApplication.creditPeriod(),
-                                                                                                        createdApplication.applicationCreditType() != null ? createdApplication.applicationCreditType().creditType() : null,
-                                                                                                        createdApplication.applicationCreditType() != null ? createdApplication.applicationCreditType().interestRate() : null,
-                                                                                                        createdApplication.applicationStatus() != null ? createdApplication.applicationStatus().description() : null
-                                                                                                ))
-                                                                                                .build()))));
+                        @RequestBody ApplicationRequest applicationRequest,
+                        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
+
+                Application application = applicationMapper.toApplication(applicationRequest);
+
+                return authService.validateUserExists(application.userEmail(), authorizationHeader)
+                                .flatMap(user -> applicationUseCase.createApplication(application))
+                                .map(createdApplication -> ResponseEntity.status(HttpStatus.CREATED)
+                                                .body(MessageResponse.<ApplicationResponse>builder()
+                                                                .message("Solicitud creada")
+                                                                .data(applicationMapper.toResponse(createdApplication))
+                                                                .build()));
         }
 }

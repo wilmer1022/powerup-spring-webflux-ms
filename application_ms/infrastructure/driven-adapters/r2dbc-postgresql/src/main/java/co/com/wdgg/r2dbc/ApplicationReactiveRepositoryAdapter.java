@@ -36,8 +36,8 @@ public class ApplicationReactiveRepositoryAdapter implements ApplicationReposito
     }
 
     @Override
-    public Flux<Application> getApplicationByUserDocumentNumber(String userDocumentNumber) {
-        return applicationReactiveRepository.findByUserDocumentNumber(userDocumentNumber)
+    public Flux<Application> getApplicationByUserEmail(String userEmail) {
+        return applicationReactiveRepository.findByUserEmail(userEmail)
                 .flatMap(this::loadApplicationStatusAndCreditTypeAndToDomain);
     }
 
@@ -50,7 +50,7 @@ public class ApplicationReactiveRepositoryAdapter implements ApplicationReposito
     private ApplicationEntity toEntity(Application application) {
         return new ApplicationEntity(
                 application.id(),
-                application.userDocumentNumber(),
+                application.userEmail(),
                 application.amount(),
                 application.creditPeriod(),
                 application.applicationStatus() != null ? application.applicationStatus().id() : null,
@@ -63,7 +63,7 @@ public class ApplicationReactiveRepositoryAdapter implements ApplicationReposito
             ApplicationCreditType applicationCreditType) {
         return new Application(
                 applicationEntity.getId(),
-                applicationEntity.getUserDocumentNumber(),
+                applicationEntity.getUserEmail(),
                 applicationEntity.getAmount(),
                 applicationEntity.getCreditPeriod(),
                 applicationStatus,

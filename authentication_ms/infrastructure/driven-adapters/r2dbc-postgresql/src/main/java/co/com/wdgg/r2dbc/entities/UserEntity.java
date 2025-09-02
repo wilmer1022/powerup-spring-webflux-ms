@@ -5,8 +5,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import co.com.wdgg.model.userrole.UserRole;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;

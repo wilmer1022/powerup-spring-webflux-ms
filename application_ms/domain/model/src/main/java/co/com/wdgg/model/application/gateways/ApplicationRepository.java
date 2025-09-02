@@ -8,7 +8,7 @@ public interface ApplicationRepository {
 
     Mono<Application> getApplicationById(String id);
 
-    Flux<Application> getApplicationByUserDocumentNumber(String userDocumentNumber);
+    Flux<Application> getApplicationByUserEmail(String userEmail);
 
     Mono<Application> createApplication(Application application);
 }

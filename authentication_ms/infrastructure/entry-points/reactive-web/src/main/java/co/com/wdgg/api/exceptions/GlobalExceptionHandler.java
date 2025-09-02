@@ -6,17 +6,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.reactive.handler.WebFluxResponseStatusExceptionHandler;
 
 import co.com.wdgg.api.dto.MessageResponse;
 import io.jsonwebtoken.JwtException;
 import reactor.core.publisher.Mono;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends WebFluxResponseStatusExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -24,60 +24,56 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<MessageResponse<String>>> handleAllExceptions(Exception ex) {
         logger.error("Unexpected exception [{}]", ex.getMessage());
 
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(MessageResponse.<String>builder()
-                .message("Ha ocurrido un error inesperado!")
-                .data(null)
-                .build()));
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error inesperado!", ex);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public Mono<ResponseEntity<MessageResponse<String>>> handleIllegalArgumentException(IllegalArgumentException ex) {
         logger.error("Illegal argument [{}]", ex.getMessage());
 
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(MessageResponse.<String>builder()
-                .message(ex.getMessage())
-                .data(null)
-                .build()));
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public Mono<ResponseEntity<MessageResponse<String>>> handleUserNotFoundException(UserNotFoundException ex) {
         logger.error("User not found [{}]", ex.getMessage());
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(MessageResponse.<String>builder()
-                .message("El usuario no se encuentra!")
-                .data(null)
-                .build()));
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Usuario no encontrado", ex);
     }
 
     @ExceptionHandler(WebExchangeBindException.class)
-    public Mono<ResponseEntity<MessageResponse<Void>>> handleValidationExceptions(WebExchangeBindException ex) {
+    public Mono<ResponseEntity<MessageResponse<String>>> handleValidationExceptions(WebExchangeBindException ex) {
         logger.error("Validation exception [{}]", ex.getMessage());
 
-        MessageResponse<Void> errorResponse = MessageResponse.<Void>builder()
-            .message("Error de validación")
-            .build();
-
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Errores de validación", ex);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public Mono<ResponseEntity<MessageResponse<String>>> handleAccessDeniedException(AccessDeniedException ex) {
         logger.error("Access denied [{}]", ex.getMessage());
 
-        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(MessageResponse.<String>builder()
-                .message(ex.getMessage())
-                .data(null)
-                .build()));
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), ex);
     }
 
     @ExceptionHandler(JwtException.class)
     public Mono<ResponseEntity<MessageResponse<String>>> handleJwtException(JwtException ex) {
         logger.error("JWT exception [{}]", ex.getMessage());
 
-        return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(MessageResponse.<String>builder()
-                .message(ex.getMessage())
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), ex);
+    }
+
+    private Mono<ResponseEntity<MessageResponse<String>>> buildErrorResponse(
+            HttpStatus status,
+            String message,
+            Throwable ex) {
+
+        logger.error("Handling exception [{}]: {}", ex.getClass().getSimpleName(), ex.getMessage());
+
+        MessageResponse<String> response = MessageResponse.<String>builder()
+                .message(message)
                 .data(null)
-                .build()));
+                .build();
+
+        return Mono.just(ResponseEntity.status(status).body(response));
     }
 }

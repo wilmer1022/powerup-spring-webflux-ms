@@ -23,8 +23,8 @@ public class ApplicationEntity {
     @Column("id")
     private UUID id;
 
-    @Column("user_document_number")
-    private String userDocumentNumber;
+    @Column("user_email")
+    private String userEmail;
 
     @Column("amount")
     private BigDecimal amount;

@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 public class SecurityHeadersConfig implements WebFilter {
 
     @Override
-    public Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
+    public @NonNull Mono<Void> filter(@NonNull ServerWebExchange exchange, @NonNull WebFilterChain chain) {
         HttpHeaders headers = exchange.getResponse().getHeaders();
         headers.set("Content-Security-Policy", "default-src 'self'; frame-ancestors 'self'; form-action 'self'");
         headers.set("Strict-Transport-Security", "max-age=31536000;");

@@ -7,30 +7,34 @@ import co.com.wdgg.model.applicationstatus.ApplicationStatus;
 import co.com.wdgg.usecase.application.validators.ApplicationValidator;
 import co.com.wdgg.usecase.applicationcredittype.ApplicationCreditTypeUseCase;
 import co.com.wdgg.usecase.applicationstatus.ApplicationStatusUseCase;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@RequiredArgsConstructor
 public class ApplicationUseCase {
 
     private final ApplicationRepository applicationRepository;
     private final ApplicationCreditTypeUseCase applicationCreditTypeUseCase;
     private final ApplicationStatusUseCase applicationStatusUseCase;
 
+    public ApplicationUseCase(ApplicationRepository applicationRepository, ApplicationCreditTypeUseCase applicationCreditTypeUseCase, ApplicationStatusUseCase applicationStatusUseCase) {
+        this.applicationRepository = applicationRepository;
+        this.applicationCreditTypeUseCase = applicationCreditTypeUseCase;
+        this.applicationStatusUseCase = applicationStatusUseCase;
+    }
+
     public Mono<Application> getApplicationById(String id) {
         return applicationRepository.getApplicationById(id);
     }
 
-    public Flux<Application> getApplicationByUserDocumentNumber(String userDocumentNumber) {
-        return applicationRepository.getApplicationByUserDocumentNumber(userDocumentNumber);
+    public Flux<Application> getApplicationByUserEmail(String userDocumentNumber) {
+        return applicationRepository.getApplicationByUserEmail(userDocumentNumber);
     }
 
     public Mono<Application> createApplication(Application application) {
         return Mono.just(application)
             .flatMap(app -> {
                 final ApplicationValidator applicationValidator = new ApplicationValidator(app);
-                return Mono.justOrEmpty(applicationValidator.validateUserDocumentNumber())
+                return Mono.justOrEmpty(applicationValidator.validateUserEmail())
                     .mergeWith(Mono.justOrEmpty(applicationValidator.validateAmount()))
                     .mergeWith(Mono.justOrEmpty(applicationValidator.validateCreditType()))
                     .mergeWith(Mono.justOrEmpty(applicationValidator.validateAmountForm()))
@@ -54,7 +58,7 @@ public class ApplicationUseCase {
 
                     Application appWithCreditTypeAndStatus = new Application(
                         app.id(),
-                        app.userDocumentNumber(),
+                        app.userEmail(),
                         app.amount(),
                         app.creditPeriod(),
                         status,

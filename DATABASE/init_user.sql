@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS applications_credit_type (
 
 CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_document_number VARCHAR(20) NOT NULL,
+    user_email VARCHAR(255) NOT NULL,
     amount DECIMAL NOT NULL,
     credit_period DATE NOT NULL,
     application_status_id UUID NOT NULL,
