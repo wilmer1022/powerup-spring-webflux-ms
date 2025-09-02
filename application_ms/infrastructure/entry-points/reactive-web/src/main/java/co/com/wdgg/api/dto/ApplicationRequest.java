@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record ApplicationRequest(
-        String userDocumentNumber,
+        String userEmail,
         BigDecimal amount,
         LocalDate creditPeriod,
         String creditType) {

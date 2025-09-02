@@ -335,3 +335,6 @@ gradle-app.setting
 # -----
 *.hprof
 build-cache
+
+# key
+aes_512_key.bin

@@ -6,12 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.reactive.handler.WebFluxResponseStatusExceptionHandler;
 
 import co.com.wdgg.api.dto.MessageResponse;
 import reactor.core.publisher.Mono;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends WebFluxResponseStatusExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -50,6 +51,16 @@ public class GlobalExceptionHandler {
         logger.error("User not found [{}]", ex.getMessage());
 
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(MessageResponse.<String>builder()
+                .message(ex.getMessage())
+                .data(null)
+                .build()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public Mono<ResponseEntity<MessageResponse<String>>> handleUnauthorizedException(UnauthorizedException ex) {
+        logger.error("Unauthorized [{}]", ex.getMessage());
+
+        return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(MessageResponse.<String>builder()
                 .message(ex.getMessage())
                 .data(null)
                 .build()));

@@ -22,15 +22,15 @@ public class ApplicationUseCase {
         return applicationRepository.getApplicationById(id);
     }
 
-    public Flux<Application> getApplicationByUserDocumentNumber(String userDocumentNumber) {
-        return applicationRepository.getApplicationByUserDocumentNumber(userDocumentNumber);
+    public Flux<Application> getApplicationByUserEmail(String userDocumentNumber) {
+        return applicationRepository.getApplicationByUserEmail(userDocumentNumber);
     }
 
     public Mono<Application> createApplication(Application application) {
         return Mono.just(application)
             .flatMap(app -> {
                 final ApplicationValidator applicationValidator = new ApplicationValidator(app);
-                return Mono.justOrEmpty(applicationValidator.validateUserDocumentNumber())
+                return Mono.justOrEmpty(applicationValidator.validateUserEmail())
                     .mergeWith(Mono.justOrEmpty(applicationValidator.validateAmount()))
                     .mergeWith(Mono.justOrEmpty(applicationValidator.validateCreditType()))
                     .mergeWith(Mono.justOrEmpty(applicationValidator.validateAmountForm()))
@@ -54,7 +54,7 @@ public class ApplicationUseCase {
 
                     Application appWithCreditTypeAndStatus = new Application(
                         app.id(),
-                        app.userDocumentNumber(),
+                        app.userEmail(),
                         app.amount(),
                         app.creditPeriod(),
                         status,

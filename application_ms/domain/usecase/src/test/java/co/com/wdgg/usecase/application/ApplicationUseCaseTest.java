@@ -60,7 +60,7 @@ class ApplicationUseCaseTest {
         );
         validApplication = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("5000000"),
             LocalDate.of(2023, 1, 1),
             validApplicationStatus,
@@ -83,7 +83,7 @@ class ApplicationUseCaseTest {
 
         StepVerifier.create(applicationUseCase.createApplication(validApplication))
                 .expectNextMatches(application ->
-                    application.userDocumentNumber().equals(validApplication.userDocumentNumber()) &&
+                    application.userEmail().equals(validApplication.userEmail()) &&
                     application.amount().equals(validApplication.amount()) &&
                     application.creditPeriod().equals(validApplication.creditPeriod()) &&
                     application.applicationCreditType().equals(validApplication.applicationCreditType()) &&
@@ -95,8 +95,8 @@ class ApplicationUseCaseTest {
     // --- Tests for validation of data ---
 
     @Test
-    void createApplication_InvalidUserDocumentNumber_ThrowsIllegalArgumentException() {
-        Application applicationWithInvalidUserDocumentNumber = new Application(
+    void createApplication_InvaliduserEmail_ThrowsIllegalArgumentException() {
+        Application applicationWithInvaliduserEmail = new Application(
             validApplication.id(),
             null,
             validApplication.amount(),
@@ -104,9 +104,9 @@ class ApplicationUseCaseTest {
             validApplication.applicationStatus(),
             validApplication.applicationCreditType()
         );
-        String expectedErrorMessage = "Errores en el formulario de registro: El documento es obligatorio";
+        String expectedErrorMessage = "Errores en el formulario de registro: El correo electrónico es obligatorio";
 
-        StepVerifier.create(applicationUseCase.createApplication(applicationWithInvalidUserDocumentNumber))
+        StepVerifier.create(applicationUseCase.createApplication(applicationWithInvaliduserEmail))
             .expectErrorMessage(expectedErrorMessage)
             .verify();
     }
@@ -115,7 +115,7 @@ class ApplicationUseCaseTest {
     void createApplication_InvalidCreditType_ThrowsIllegalArgumentException() {
         Application applicationWithInvalidCreditType = new Application(
             validApplication.id(),
-            validApplication.userDocumentNumber(),
+            validApplication.userEmail(),
             validApplication.amount(),
             validApplication.creditPeriod(),
             validApplication.applicationStatus(),
@@ -132,7 +132,7 @@ class ApplicationUseCaseTest {
     void createApplication_InvalidAmountForm_ThrowsIllegalArgumentException() {
         Application applicationWithInvalidAmountForm = new Application(
             validApplication.id(),
-            validApplication.userDocumentNumber(),
+            validApplication.userEmail(),
             new BigDecimal("10000000001"),
             validApplication.creditPeriod(),
             validApplication.applicationStatus(),
@@ -166,19 +166,19 @@ class ApplicationUseCaseTest {
     }
 
     @Test
-    void getApplicationByUserDocumentNumber_UserFound_ReturnsUser() {
-        when(applicationRepository.getApplicationByUserDocumentNumber("123456789")).thenReturn(Flux.just(validApplication));
+    void getApplicationByuserEmail_UserFound_ReturnsUser() {
+        when(applicationRepository.getApplicationByUserEmail("user@email.com")).thenReturn(Flux.just(validApplication));
 
-        StepVerifier.create(applicationUseCase.getApplicationByUserDocumentNumber("123456789"))
+        StepVerifier.create(applicationUseCase.getApplicationByUserEmail("user@email.com"))
             .expectNext(validApplication)
             .verifyComplete();
     }
 
     @Test
-    void getApplicationByUserDocumentNumber_UserNotFound_ReturnsEmpty() {
-        when(applicationRepository.getApplicationByUserDocumentNumber("987654321")).thenReturn(Flux.empty());
+    void getApplicationByuserEmail_UserNotFound_ReturnsEmpty() {
+        when(applicationRepository.getApplicationByUserEmail("user@email.com")).thenReturn(Flux.empty());
 
-        StepVerifier.create(applicationUseCase.getApplicationByUserDocumentNumber("987654321"))
+        StepVerifier.create(applicationUseCase.getApplicationByUserEmail("user@email.com"))
             .expectNextCount(0)
             .verifyComplete();
     }

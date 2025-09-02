@@ -16,9 +16,9 @@ public class ApplicationValidator {
     }
 
     // Validate Not Null and Not Blank
-    public String validateUserDocumentNumber() {
-        if (application.userDocumentNumber() == null || application.userDocumentNumber().isBlank()) {
-            return "El documento es obligatorio";
+    public String validateUserEmail() {
+        if (application.userEmail() == null || application.userEmail().isBlank()) {
+            return "El correo electrónico es obligatorio";
         }
         return null;
     }

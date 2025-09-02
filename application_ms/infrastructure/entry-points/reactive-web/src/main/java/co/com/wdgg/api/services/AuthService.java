@@ -1,6 +1,7 @@
-package co.com.wdgg.api.service;
+package co.com.wdgg.api.services;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,17 +20,18 @@ public class AuthService {
     }
 
     /**
-     * Validates if a user with the given document number exists in the authentication microservice.
+     * Validates if a user with the given email exists in the authentication microservice.
      * This method sends a GET request to the authentication microservice to check if the user exists.
      * If the user is found, it returns the user object. If the user is not found, it throws an exception.
-     * @param userDocumentNumber
+     * @param userEmail
      * @return the user object if found
      */
-    public Mono<User> validateUserExists(String userDocumentNumber) {
-        return webClient.get().uri("/buscar?document_number={document_number}", userDocumentNumber)
+    public Mono<User> validateUserExists(String userEmail, String token) {
+        return webClient.get().uri("/buscar-por-email?email={document_number}", userEmail)
+                .header(HttpHeaders.AUTHORIZATION, token)
                 .retrieve()
                 .onStatus(HttpStatus.NOT_FOUND::equals, response -> Mono.error(new UserNotFoundException(
-                        "Usuario con documento " + userDocumentNumber + " no encontrado")))
+                        "Usuario con correo electrónico " + userEmail + " no encontrado")))
                 .bodyToMono(User.class);
     }
 }

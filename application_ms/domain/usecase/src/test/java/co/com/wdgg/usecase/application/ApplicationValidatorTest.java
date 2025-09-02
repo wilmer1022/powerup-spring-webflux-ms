@@ -18,7 +18,7 @@ class ApplicationValidatorTest {
     private Application createValidApplication() {
         return new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("5000000"),
             LocalDate.of(2023, 1, 1),
             null,
@@ -29,7 +29,7 @@ class ApplicationValidatorTest {
     // --- Tests for not-null and not-blank ---
 
     @Test
-    void validateUserDocumentNumber_withNull_returnsError() {
+    void validateUserEmail_withNull_returnsError() {
         Application application = new Application(
             UUID.randomUUID(),
             null,
@@ -39,11 +39,11 @@ class ApplicationValidatorTest {
             null
         );
         ApplicationValidator validator = new ApplicationValidator(application);
-        assertEquals("El documento es obligatorio", validator.validateUserDocumentNumber());
+        assertEquals("El correo electrónico es obligatorio", validator.validateUserEmail());
     }
 
     @Test
-    void validateUserDocumentNumber_withBlank_returnsError() {
+    void validateUserEmail_withBlank_returnsError() {
         Application application = new Application(
             UUID.randomUUID(),
             "   ",
@@ -53,21 +53,21 @@ class ApplicationValidatorTest {
             null
         );
         ApplicationValidator validator = new ApplicationValidator(application);
-        assertEquals("El documento es obligatorio", validator.validateUserDocumentNumber());
+        assertEquals("El correo electrónico es obligatorio", validator.validateUserEmail());
     }
 
     @Test
-    void validateUserDocumentNumber_withValidValue_returnsNull() {
+    void validateUserEmail_withValidValue_returnsNull() {
         Application application = createValidApplication();
         ApplicationValidator validator = new ApplicationValidator(application);
-        assertNull(validator.validateUserDocumentNumber());
+        assertNull(validator.validateUserEmail());
     }
 
     @Test
     void validateAmount_withNull_returnsError() {
         Application application = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             null,
             LocalDate.of(2023, 1, 1),
             null,
@@ -81,7 +81,7 @@ class ApplicationValidatorTest {
     void validateCreditType_withNull_returnsError() {
         Application application = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("5000000"),
             LocalDate.of(2023, 1, 1),
             null,
@@ -97,7 +97,7 @@ class ApplicationValidatorTest {
     void validateAmountForm_withValueAtLowerBound_returnsNull() {
         Application application = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("0"),
             LocalDate.of(2023, 1, 1),
             null,
@@ -111,7 +111,7 @@ class ApplicationValidatorTest {
     void validateAmountForm_withValueAtUpperBound_returnsNull() {
         Application application = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("10000000000"),
             LocalDate.of(2023, 1, 1),
             null,
@@ -125,7 +125,7 @@ class ApplicationValidatorTest {
     void validateAmountForm_withValueBelowLowerBound_returnsError() {
         Application application = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("-1"),
             LocalDate.of(2023, 1, 1),
             null,
@@ -139,7 +139,7 @@ class ApplicationValidatorTest {
     void validateAmountForm_withValueAboveUpperBound_returnsError() {
         Application application = new Application(
             UUID.randomUUID(),
-            "123456789",
+            "user@email.com",
             new BigDecimal("10000000001"),
             LocalDate.of(2023, 1, 1),
             null,

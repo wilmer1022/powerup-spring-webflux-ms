@@ -19,12 +19,12 @@ import java.util.UUID;
 public interface ApplicationReactiveRepository extends ReactiveCrudRepository<ApplicationEntity, UUID> {
 
     /**
-     * Finds applications by their user document number.
+     * Finds applications by their user email.
      * This method returns a Flux, which represents a stream of results
      * in a reactive, non-blocking way.
      *
-     * @param userDocumentNumber The unique document number of the user.
+     * @param userEmail The unique email of the user.
      * @return A {@link Flux} containing the found {@link ApplicationEntity} or an empty Flux if not found.
      */
-    Flux<ApplicationEntity> findByUserDocumentNumber(String userDocumentNumber);
+    Flux<ApplicationEntity> findByUserEmail(String userEmail);
 }

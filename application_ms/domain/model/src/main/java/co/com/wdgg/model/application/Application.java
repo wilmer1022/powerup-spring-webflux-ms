@@ -9,7 +9,7 @@ import co.com.wdgg.model.applicationstatus.ApplicationStatus;
 
 public record Application(
         UUID id,
-        String userDocumentNumber,
+        String userEmail,
         BigDecimal amount,
         LocalDate creditPeriod,
         ApplicationStatus applicationStatus,
