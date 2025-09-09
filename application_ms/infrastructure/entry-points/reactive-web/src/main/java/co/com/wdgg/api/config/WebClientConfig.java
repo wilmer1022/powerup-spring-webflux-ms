@@ -7,10 +7,16 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
+    private final WebCleintProperties webClientProperties;
+
+    public WebClientConfig(WebCleintProperties webClientProperties) {
+        this.webClientProperties = webClientProperties;
+    }
+
     @Bean
     WebClient authServiceWebClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:8080/api/v1/usuarios")
+                .baseUrl("http://" + webClientProperties.host() + ":" + webClientProperties.port() + "/api/v1/usuarios")
                 .build();
     }
 }

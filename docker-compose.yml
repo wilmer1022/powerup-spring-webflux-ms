@@ -11,6 +11,22 @@ services:
       - "5432:5432"
     volumes:
       - user-db:/var/lib/postgresql/data
+    networks:
+      - ms_network
+  app-service-auth-ms:
+    build:
+      context: ./authentication_ms
+      dockerfile: deployment/Dockerfile
+    container_name: app-service-auth-ms
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-db
+    environment:
+      - POSTGRES_HOST=user-db
+      - POSTGRES_PORT=5432
+    networks:
+      - ms_network
 
   application-db:
     image: postgres
@@ -24,7 +40,29 @@ services:
       - "5433:5432"
     volumes:
       - application-db:/var/lib/postgresql/data
+    networks:
+      - ms_network
+
+  app-service-application-ms:
+    build:
+      context: ./application_ms
+      dockerfile: deployment/Dockerfile
+    container_name: app-service-application-ms
+    ports:
+      - "8081:8081"
+    depends_on:
+      - application-db
+    environment:
+      - POSTGRES_HOST=application-db
+      - POSTGRES_PORT=5432
+      - AUTH_SERVICE_HOST=app-service-auth-ms
+      - APPLICATION_SERVICE_HOST=app-service-application-ms
+    networks:
+      - ms_network
 
 volumes:
   user-db:
   application-db:
+
+networks:
+  ms_network:
