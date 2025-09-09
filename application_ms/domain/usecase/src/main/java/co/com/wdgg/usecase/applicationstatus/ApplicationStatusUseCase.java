@@ -1,7 +1,10 @@
 package co.com.wdgg.usecase.applicationstatus;
 
+import java.util.List;
+
 import co.com.wdgg.model.applicationstatus.ApplicationStatus;
 import co.com.wdgg.model.applicationstatus.gateways.ApplicationStatusRepository;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class ApplicationStatusUseCase {
@@ -18,5 +21,9 @@ public class ApplicationStatusUseCase {
 
     public Mono<ApplicationStatus> getApplicationStatusByStatus(String status) {
         return applicationStatusRepository.getApplicationStatusByStatus(status);
+    }
+
+    public Flux<ApplicationStatus> getApplicationStatusesByStatuses(List<String>  statuses) {
+        return applicationStatusRepository.getApplicationStatusesByStatuses(statuses);
     }
 }

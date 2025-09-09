@@ -1,5 +1,7 @@
 package co.com.wdgg.api;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -180,9 +183,28 @@ public class ApiRest {
                                                 .body(MessageResponse.<SignInResponse>builder()
                                                                 .message("Inicio de sesión exitoso")
                                                                 .data(new SignInResponse(
-                                                                                userMapper.toResponse(userRetrieved),
                                                                                 jwtService.generateToken(new UserDTO(
                                                                                                 userRetrieved))))
                                                                 .build()));
+        }
+
+        /**
+         * Retrieves a user by their email.
+         * This method handles a GET request to find users using their emails.
+         * It returns a reactive Flux containing the response entity.
+         *
+         * @param emails
+         * @return List of {@link User} object if found
+         */
+        @Operation(summary = "Buscar un usuario por su correo electrónico", description = "Recibe una lista de correos electrónicos (List<String>) para buscarlos.", tags = {
+                        "Usuarios" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Usuarios encontrado"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/usuarios/emails")
+        public Flux<UserResponse> getUserByEmails(@RequestParam("emails") List<String> emails) {
+                return userUseCase.getUsersByEmails(emails)
+                                .map(userMapper::toResponse);
         }
 }

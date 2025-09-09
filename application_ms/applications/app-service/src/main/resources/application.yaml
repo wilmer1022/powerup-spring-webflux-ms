@@ -21,13 +21,13 @@ management:
       probes:
         enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080,http://localhost:8081"
+  allowed-origins: "http://localhost:4200,http://${AUTH_SERVICE_HOST:localhost}:8080,http://${APPLICATION_SERVICE_HOST:localhost}:8081"
 
 adapters:
   r2dbc:
     database: "cy_application"
-    host: "localhost"
-    port: 5433
+    host: "${POSTGRES_HOST:localhost}"
+    port: "${POSTGRES_PORT:5433}"
     schema: "public"
     username: "myuser"
     password: "mypassword"
@@ -40,3 +40,8 @@ security:
   jwt:
     secret-key: "aes_512_key.bin"
     expiration-time: 3600000
+
+webclient:
+  client:
+    host: "${AUTH_SERVICE_HOST:localhost}"
+    port: "8080"

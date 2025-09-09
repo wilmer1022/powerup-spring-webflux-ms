@@ -1,5 +1,7 @@
 package co.com.wdgg.api.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
@@ -8,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import co.com.wdgg.api.exceptions.UserNotFoundException;
 import co.com.wdgg.model.user.User;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -33,5 +36,20 @@ public class AuthService {
                 .onStatus(HttpStatusCode::is4xxClientError, response -> Mono.error(new UserNotFoundException(
                         "Usuario con correo electrónico " + userEmail + " no encontrado")))
                 .bodyToMono(User.class);
+    }
+
+    /**
+     * Retrieves a list of users by their emails.
+     * This method sends a GET request to the authentication microservice to retrieve a list of users by their emails.
+     * If the user is found, it returns the user object. If the user is not found, it throws an exception.
+     * @param emails
+     * @return a list of users
+     */
+    public Flux<User> getUsersByEmails(List<String> emails, String token) {
+        return webClient.get().uri("/emails?emails={emails}", String.join(",", emails))
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .retrieve()
+                .bodyToFlux(User.class)
+                .onErrorResume(e -> Flux.empty());
     }
 }

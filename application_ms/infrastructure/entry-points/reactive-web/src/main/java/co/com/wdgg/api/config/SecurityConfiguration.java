@@ -58,6 +58,8 @@ public class SecurityConfiguration {
                                                 .permitAll()
                                                 .pathMatchers(HttpMethod.POST, "/api/v1/solicitud")
                                                 .hasRole("CLIENTE")
+                                                .pathMatchers(HttpMethod.GET, "/api/v1/solicitud/buscar/aplicaciones-revisables**")
+                                                .hasRole("ASESOR")
                                                 .anyExchange().authenticated())
                                 .build();
         }

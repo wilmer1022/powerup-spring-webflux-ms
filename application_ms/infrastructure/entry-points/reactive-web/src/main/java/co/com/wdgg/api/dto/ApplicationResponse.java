@@ -13,10 +13,11 @@ public record ApplicationResponse(
         )
         UUID id,
         @Schema(
-                description = "Número de documento del usuario",
-                example = "1199999999"
+                description = "Correo electrónico del usuario",
+                example = "user@example.com",
+                format = "email"
         )
-        String userDocumentNumber,
+        String email,
         @Schema(
                 description = "Monto de la solicitud",
                 example = "4500000",

@@ -20,13 +20,13 @@ management:
       probes:
         enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080,http://localhost:8081"
+  allowed-origins: "http://localhost:4200,http://${AUTH_SERVICE_HOST:localhost}:8080,http://${APPLICATION_SERVICE_HOST:localhost}:8081"
 
 adapters:
   r2dbc:
     database: "cy_user"
-    host: "localhost"
-    port: 5432
+    host: "${POSTGRES_HOST:localhost}"
+    port: "${POSTGRES_PORT:5432}"
     schema: "public"
     username: "myuser"
     password: "mypassword"
