@@ -1,5 +1,8 @@
 package co.com.wdgg.model.application.gateways;
 
+import java.util.List;
+import java.util.UUID;
+
 import co.com.wdgg.model.application.Application;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -11,4 +14,6 @@ public interface ApplicationRepository {
     Flux<Application> getApplicationByUserEmail(String userEmail);
 
     Mono<Application> createApplication(Application application);
+
+    Flux<Application> getReviewableApplications(List<UUID> statusIds, int limit, long offset);
 }

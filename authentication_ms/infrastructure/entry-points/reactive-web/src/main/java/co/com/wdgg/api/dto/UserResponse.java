@@ -13,6 +13,7 @@ public record UserResponse(
         String phoneNumber,
         String address,
         LocalDate birthDate,
-        BigDecimal salary) {
+        BigDecimal salary,
+        String role) {
 
 }

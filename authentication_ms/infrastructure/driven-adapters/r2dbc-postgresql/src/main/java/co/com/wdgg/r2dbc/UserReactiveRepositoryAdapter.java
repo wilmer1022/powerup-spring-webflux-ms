@@ -1,5 +1,6 @@
 package co.com.wdgg.r2dbc;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -10,7 +11,7 @@ import co.com.wdgg.model.userrole.gateways.UserRoleRepository;
 import co.com.wdgg.r2dbc.entities.UserEntity;
 import co.com.wdgg.r2dbc.services.ChiperPasswordService;
 import co.com.wdgg.model.user.User;
-
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -67,6 +68,12 @@ public class UserReactiveRepositoryAdapter implements UserRepository {
     @Override
     public Mono<Boolean> validateUserPassword(String chiperPassword, String password) {
         return Mono.just(chiperPasswordService.passwordsMatch(password, chiperPassword));
+    }
+
+    @Override
+    public Flux<User> getUsersByEmails(List<String> emails) {
+        return userRepository.findByEmailIn(emails)
+                .flatMap(this::loadUserRoleAndToDomain);
     }
 
     private UserEntity toEntity(User user) {

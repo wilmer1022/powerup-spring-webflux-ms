@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.com.wdgg.model.user.User;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public class UserUseCase {
@@ -86,5 +87,9 @@ public class UserUseCase {
                     return Mono.error(new IllegalArgumentException("El correo electrónico y/o contraseña son incorrectos"));
                 })
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("El correo electrónico y/o contraseña son incorrectos")));
+    }
+
+    public Flux<User> getUsersByEmails(List<String> emails) {
+        return userRepository.getUsersByEmails(emails);
     }
 }

@@ -1,29 +1,39 @@
 package co.com.wdgg.api;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.com.wdgg.api.dto.ApplicationMapper;
 import co.com.wdgg.api.dto.ApplicationRequest;
 import co.com.wdgg.api.dto.ApplicationResponse;
+import co.com.wdgg.api.dto.ApplicationReviewableResponse;
 import co.com.wdgg.api.dto.MessageResponse;
 import co.com.wdgg.api.exceptions.ApplicationNotFoundException;
+import co.com.wdgg.api.exceptions.UserNotFoundException;
 import co.com.wdgg.api.services.AuthService;
 import co.com.wdgg.model.application.Application;
+import co.com.wdgg.model.user.User;
 import co.com.wdgg.usecase.application.ApplicationUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import reactor.core.publisher.Mono;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -69,10 +79,7 @@ public class ApiRest {
                         })
         @GetMapping("/{id}")
         public Mono<ResponseEntity<MessageResponse<ApplicationResponse>>> getApplicationById(
-                @Schema(
-                        description = "Identificador único de la solicitud"
-                )    
-                @PathVariable("id") String id) {
+                        @Schema(description = "Identificador único de la solicitud") @PathVariable("id") String id) {
                 return applicationUseCase.getApplicationById(id)
                                 .map(applicationRetrieved -> ResponseEntity.status(HttpStatus.OK)
                                                 .body(MessageResponse.<ApplicationResponse>builder()
@@ -101,11 +108,7 @@ public class ApiRest {
                         })
         @GetMapping("/buscar/{user_email}")
         public Mono<ResponseEntity<MessageResponse<List<ApplicationResponse>>>> getApplicationByUserEmail(
-                        @Schema(
-                                description = "Correo electrónico del usuario",
-                                format = "email"
-                        )  
-                        @PathVariable("user_email") String userEmail) {
+                        @Schema(description = "Correo electrónico del usuario", format = "email") @PathVariable("user_email") String userEmail) {
                 return applicationUseCase.getApplicationByUserEmail(userEmail)
                                 .collectList()
                                 .flatMap(applicationRetrievedList -> {
@@ -156,4 +159,85 @@ public class ApiRest {
                                                                 .data(applicationMapper.toResponse(createdApplication))
                                                                 .build()));
         }
+
+        /**
+         * Retrieves reviewsable applications by pagination.
+         * This method handles a GET request to retrieve reviewsable applications by
+         * pagination.
+         * It returns a reactive Mono containing the response entity.
+         * 
+         * @param page
+         * @param size
+         * @return
+         */
+        @Operation(summary = "Buscar aplicaciones revisables", description = "Recibe un parametro tamaño (size) y otro pagina (page) para buscar las aplicaciones revisables.", tags = {
+                        "Solicitudes" }, responses = {
+                                        @ApiResponse(responseCode = "200", description = "Aplicaciones revisables encontradas"),
+                                        @ApiResponse(responseCode = "400", description = "Error de validación", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class))),
+                                        @ApiResponse(responseCode = "500", description = "Error interno", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponse.class)))
+                        })
+        @GetMapping("/buscar/aplicaciones-revisables")
+        public Mono<List<ApplicationReviewableResponse>> getReviewableApplications(
+                        @Schema(description = "Pagina actual") @RequestParam(name = "page", defaultValue = "0") int page,
+                        @Schema(description = "Tamaño de la página") @RequestParam(name = "size", defaultValue = "10") int size,
+                        @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
+
+                return applicationUseCase.getReviewableApplications(page, size)
+                                .collectList()
+                                .flatMap(applications -> {
+
+                                        if (applications.isEmpty()) {
+                                                return Mono.error(new ApplicationNotFoundException("Aplicaciones revisables no encontradas"));
+                                        }
+
+                                        List<String> userEmails = applications.stream()
+                                                        .map(Application::userEmail)
+                                                        .toList();
+
+                                        return authService.getUsersByEmails(userEmails, authorizationHeader)
+                                                        .collectList()
+                                                        .map(users -> {
+                                                                if (users.isEmpty()) {
+                                                                        Mono.error(new UserNotFoundException("No se encontraron usuarios"));
+                                                                }
+                                                                Map<String, User> userMap = users.stream()
+                                                                                .collect(Collectors.toMap(User::email,
+                                                                                                user -> user));
+
+                                                                return applications.stream()
+                                                                                .map(application -> {
+                                                                                        User user = userMap.get(
+                                                                                                        application.userEmail());
+                                                                                        BigDecimal monthlyRequestAmount = calculateMonthlyRequestAmount(
+                                                                                                        application.amount(),
+                                                                                                        application.applicationCreditType()
+                                                                                                                        .interestRate());
+
+                                                                                        return new ApplicationReviewableResponse(
+                                                                                                        application.id(),
+                                                                                                        application.userEmail(),
+                                                                                                        user.firstName(),
+                                                                                                        user.lastName(),
+                                                                                                        application.amount(),
+                                                                                                        application.creditPeriod(),
+                                                                                                        application.applicationCreditType()
+                                                                                                                        .creditType(),
+                                                                                                        application.applicationCreditType()
+                                                                                                                        .interestRate(),
+                                                                                                        application.applicationStatus()
+                                                                                                                        .status(),
+                                                                                                        user.salary(),
+                                                                                                        monthlyRequestAmount);
+                                                                                }).toList();
+                                                        })
+                                                        .onErrorResume(e -> Mono.error(new UserNotFoundException("Error al obtener usuarios por emails")));
+                                })
+                                .onErrorResume(e -> Mono.error(new ApplicationNotFoundException(e.getMessage())));
+        }
+
+        private BigDecimal calculateMonthlyRequestAmount(BigDecimal amount, BigDecimal interestRate) {
+                BigDecimal interestAmount = amount.multiply(BigDecimal.valueOf(interestRate.longValue()));
+                return amount.add(interestAmount).divide(BigDecimal.valueOf(36), 2, RoundingMode.HALF_DOWN);
+        }
+
 }

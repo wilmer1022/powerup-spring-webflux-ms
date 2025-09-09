@@ -3,8 +3,10 @@ package co.com.wdgg.r2dbc;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 import co.com.wdgg.r2dbc.entities.UserEntity;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,4 +37,6 @@ public interface UserReactiveRepository extends ReactiveCrudRepository<UserEntit
      * @return A {@link Mono} containing the found {@link UserEntity} or an empty Mono if not found.
      */
     Mono<UserEntity> findByEmail(String email);
+
+    Flux<UserEntity> findByEmailIn(List<String> emails);
 }

@@ -31,6 +31,7 @@ public class UserMapper {
                 user.phoneNumber(),
                 user.address(),
                 user.birthDate(),
-                user.salary());
+                user.salary(),
+                user.role().role());
     }
 }

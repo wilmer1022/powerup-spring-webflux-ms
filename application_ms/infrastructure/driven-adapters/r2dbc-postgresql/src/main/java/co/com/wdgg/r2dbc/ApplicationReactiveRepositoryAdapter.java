@@ -1,5 +1,6 @@
 package co.com.wdgg.r2dbc;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Repository;
@@ -44,6 +45,12 @@ public class ApplicationReactiveRepositoryAdapter implements ApplicationReposito
     @Override
     public Mono<Application> createApplication(Application application) {
         return applicationReactiveRepository.save(toEntity(application))
+                .flatMap(this::loadApplicationStatusAndCreditTypeAndToDomain);
+    }
+
+    @Override
+    public Flux<Application> getReviewableApplications(List<UUID> statusIds, int limit, long offset) {
+        return applicationReactiveRepository.findReviewableApplications(statusIds, limit, offset)
                 .flatMap(this::loadApplicationStatusAndCreditTypeAndToDomain);
     }
 
